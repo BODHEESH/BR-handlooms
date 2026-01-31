@@ -1,0 +1,29 @@
+{
+  "name": "br-handlooms-website",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "mongodb": "^6.21.0",
+    "mongoose": "^8.22.0",
+    "next": "14.0.4",
+    "react": "^18",
+    "react-dom": "^18"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.30",
+    "@types/react": "^18.3.27",
+    "@types/react-dom": "^18",
+    "autoprefixer": "^10.4.24",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "^14.0.4",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.19",
+    "typescript": "^5.9.3"
+  }
+}
