@@ -50,8 +50,8 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error creating product:', error);
 
-    // Handle duplicate key error
-    if (error.code === 11000) {
+    // Handle duplicate key error (MongoDB error code 11000)
+    if (error && typeof error === 'object' && 'code' in error && error.code === 11000) {
       return NextResponse.json(
         { error: 'Product with this name already exists' },
         { status: 409 }
