@@ -2,6 +2,12 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import Link from 'next/link'
 import MobileMenu from '@/components/MobileMenu'
+import CartIcon from '@/components/CartIcon'
+import WishlistIcon from '@/components/WishlistIcon'
+import LoginButton from '@/components/LoginButton'
+import { CartProvider } from '@/contexts/CartContext'
+import { WishlistProvider } from '@/contexts/WishlistContext'
+import { AuthProvider } from '@/contexts/AuthContext'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -19,35 +25,44 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <div className="min-h-screen bg-white">
-          <header className="bg-white border-b border-gray-200">
-            <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex justify-between items-center h-20">
-                <div className="flex items-center">
-                  <Link href="/" className="flex items-center">
-                    <div className="text-center">
-                      <h1 className="text-2xl font-serif text-gray-900 tracking-wide hover:text-primary-700 transition-colors">BR Handlooms</h1>
-                      <p className="text-xs text-primary-700 tracking-widest">KUTHAMPULLY</p>
+        <AuthProvider>
+          <CartProvider>
+            <WishlistProvider>
+              <div className="min-h-screen bg-white">
+              <header className="bg-white border-b border-gray-200">
+                <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                  <div className="flex justify-between items-center h-20">
+                    <div className="flex items-center">
+                      <Link href="/" className="flex items-center">
+                        <div className="text-center">
+                          <h1 className="text-2xl font-serif text-gray-900 tracking-wide hover:text-primary-700 transition-colors">BR Handlooms</h1>
+                          <p className="text-xs text-primary-700 tracking-widest">KUTHAMPULLY</p>
+                        </div>
+                      </Link>
                     </div>
-                  </Link>
-                </div>
-                
-                {/* Desktop Navigation */}
-                <div className="hidden md:block">
-                  <div className="ml-10 flex items-center space-x-8">
-                    <Link href="/" className="text-gray-700 hover:text-primary-600 text-sm font-medium transition-colors">Home</Link>
-                    <Link href="/products" className="text-gray-700 hover:text-primary-600 text-sm font-medium transition-colors">Products</Link>
-                    <Link href="/new-arrivals" className="text-gray-700 hover:text-primary-600 text-sm font-medium transition-colors">New Arrivals</Link>
-                    <a href="https://wa.me/917907730095" className="bg-green-600 text-white px-5 py-2 rounded-md text-sm font-medium hover:bg-green-700 transition-colors inline-flex items-center">
-                      <span className="mr-1">📱</span> WhatsApp Order
-                    </a>
-                  </div>
-                </div>
+                    
+                    {/* Desktop Navigation */}
+                    <div className="hidden md:block">
+                      <div className="ml-10 flex items-center space-x-8">
+                        <Link href="/" className="text-gray-700 hover:text-primary-600 text-sm font-medium transition-colors">Home</Link>
+                        <Link href="/products" className="text-gray-700 hover:text-primary-600 text-sm font-medium transition-colors">Products</Link>
+                        <Link href="/new-arrivals" className="text-gray-700 hover:text-primary-600 text-sm font-medium transition-colors">New Arrivals</Link>
+                        <a href="https://wa.me/917907730095" className="bg-green-600 text-white px-5 py-2 rounded-md text-sm font-medium hover:bg-green-700 transition-colors inline-flex items-center">
+                          <span className="mr-1">📱</span> WhatsApp Order
+                        </a>
+                      </div>
+                    </div>
 
-                {/* Mobile Menu */}
-                <div className="md:hidden">
-                  <MobileMenu />
-                </div>
+                    {/* Cart & Wishlist Icons */}
+                    <div className="flex items-center space-x-2">
+                      <LoginButton />
+                      <WishlistIcon />
+                      <CartIcon />
+                      {/* Mobile Menu */}
+                      <div className="md:hidden">
+                        <MobileMenu />
+                      </div>
+                    </div>
               </div>
             </nav>
           </header>
@@ -86,6 +101,9 @@ export default function RootLayout({
             </div>
           </footer>
         </div>
+              </WishlistProvider>
+            </CartProvider>
+          </AuthProvider>
       </body>
     </html>
   )

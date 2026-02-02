@@ -6,123 +6,18 @@ import Link from 'next/link'
 import ProductFilters from '@/components/ProductFilters'
 
 async function getProducts(): Promise<Product[]> {
-  // Return all dummy products for main products page
-  const allProducts = [
-    {
-      _id: '1',
-      name: 'Traditional Kuthampully Kasavu Saree',
-      fabric: 'Pure Cotton',
-      color: 'White with Gold Border',
-      price: '₹3,500',
-      stock: 'In Stock',
-      description: 'Authentic Kuthampully handloom kasavu saree with traditional gold border',
-      images: ['/sample-images/ProductSample.jpeg'],
-      tags: ['traditional', 'kasavu', 'cotton'],
-      shipping: 'Free shipping across India',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      _id: '2',
-      name: 'Kerala Mundu Set',
-      fabric: 'Handloom Cotton',
-      color: 'Off White',
-      price: '₹1,200',
-      stock: 'In Stock',
-      description: 'Traditional Kerala mundu set for men, handwoven with care',
-      images: ['/sample-images/ProductSample.jpeg'],
-      tags: ['mundu', 'traditional', 'cotton'],
-      shipping: 'Free shipping across India',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      _id: '3',
-      name: 'Designer Handloom Saree',
-      fabric: 'Silk Blend',
-      color: 'Maroon with Gold',
-      price: '₹5,800',
-      stock: 'Limited Stock',
-      description: 'Elegant designer saree with traditional Kerala motifs',
-      images: ['/sample-images/ProductSample.jpeg'],
-      tags: ['designer', 'silk', 'traditional'],
-      shipping: 'Free shipping across India',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      _id: '4',
-      name: 'Kuthampully Set Mundu',
-      fabric: 'Pure Cotton',
-      color: 'Cream with Border',
-      price: '₹2,100',
-      stock: 'In Stock',
-      description: 'Traditional set mundu perfect for special occasions',
-      images: ['/sample-images/ProductSample.jpeg'],
-      tags: ['set-mundu', 'traditional', 'cotton'],
-      shipping: 'Free shipping across India',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      _id: '5',
-      name: 'Celebrity Inspired Saree',
-      fabric: 'Premium Silk',
-      color: 'Royal Blue',
-      price: '₹8,500',
-      stock: 'Limited Stock',
-      description: 'Trending design inspired by celebrity styles',
-      images: ['/sample-images/ProductSample.jpeg'],
-      tags: ['celebrity', 'silk', 'designer'],
-      shipping: 'Free shipping across India',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      _id: '6',
-      name: 'Traditional Dhoti',
-      fabric: 'Handloom Cotton',
-      color: 'White',
-      price: '₹800',
-      stock: 'In Stock',
-      description: 'Comfortable traditional dhoti for daily wear',
-      images: ['/sample-images/ProductSample.jpeg'],
-      tags: ['dhoti', 'traditional', 'cotton'],
-      shipping: 'Free shipping across India',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      _id: '7',
-      name: 'Bridal Collection Saree',
-      fabric: 'Pure Silk',
-      color: 'Red with Gold',
-      price: '₹12,000',
-      stock: 'Limited Stock',
-      description: 'Exquisite bridal saree with intricate traditional work',
-      images: ['/sample-images/ProductSample.jpeg'],
-      tags: ['bridal', 'silk', 'luxury'],
-      shipping: 'Free shipping across India',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      _id: '8',
-      name: 'Casual Cotton Saree',
-      fabric: 'Soft Cotton',
-      color: 'Light Green',
-      price: '₹1,800',
-      stock: 'In Stock',
-      description: 'Light and comfortable saree perfect for daily wear',
-      images: ['/sample-images/ProductSample.jpeg'],
-      tags: ['casual', 'cotton', 'daily-wear'],
-      shipping: 'Free shipping across India',
-      createdAt: new Date(),
-      updatedAt: new Date()
+  try {
+    const response = await fetch('http://localhost:3000/api/products')
+    if (!response.ok) {
+      console.error('Failed to fetch products:', response.statusText)
+      return []
     }
-  ]
-
-  return allProducts
+    const data = await response.json()
+    return data.products || []
+  } catch (error) {
+    console.error('Error fetching products:', error)
+    return []
+  }
 }
 
 function sortProducts(products: Product[], sortOption: string): Product[] {
@@ -190,12 +85,15 @@ function filterProducts(products: Product[], filters: {
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const initializeProducts = async () => {
+      setLoading(true)
       const initialProducts = await getProducts()
       setProducts(initialProducts)
       setFilteredProducts(initialProducts)
+      setLoading(false)
     }
     initializeProducts()
   }, [])
@@ -243,23 +141,62 @@ export default function ProductsPage() {
       </div>
 
       {/* Products Grid */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredProducts.map((product: Product) => (
-            <div key={product._id} className="group">
-              <div className="relative bg-white rounded-lg shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden">
+      <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-4 pb-12">
+        {loading ? (
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+          </div>
+        ) : filteredProducts.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="text-gray-500 text-lg mb-4">
+              {products.length === 0 
+                ? "No products added yet. Send a message to your Telegram bot to add products!"
+                : "No products match your filters. Try adjusting your filters."
+              }
+            </div>
+            {products.length === 0 && (
+              <div className="bg-gray-100 rounded-lg p-6 max-w-md mx-auto">
+                <h3 className="font-semibold text-gray-700 mb-2">How to add products:</h3>
+                <p className="text-sm text-gray-600">
+                  Send a message to your Telegram bot with this format:
+                </p>
+                <pre className="bg-white p-3 rounded mt-2 text-xs text-left">
+                  {`#NewArrival
+
+                  Product Name: [Name]
+                  Fabric: [Fabric]
+                  Color: [Color]
+                  Price: [Price]
+                  Stock: [Stock]
+
+                  #tag1 #tag2`}
+                </pre>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {filteredProducts.map((product: Product) => (
+            <div key={product._id} className="group h-full flex flex-col">
+              <div className="relative bg-white rounded-lg shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden flex flex-col h-full">
                 {/* Product Image */}
-                <div className="aspect-w-4 aspect-h-5 bg-gray-100 relative overflow-hidden">
+                <Link href={`/products/${product._id}`} className="aspect-[3/3] bg-gray-100 relative overflow-hidden flex-shrink-0 block">
                   <img
                     src={product.images?.[0] || '/sample-images/ProductSample.jpeg'}
                     alt={product.name}
                     className="w-full h-full object-center object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-                </div>
+                  {/* Hover overlay */}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 flex items-center justify-center">
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white/90 text-gray-900 px-4 py-2 rounded-lg text-sm font-medium">
+                      View Details
+                    </div>
+                  </div>
+                </Link>
 
                 {/* Product Info */}
-                <div className="p-6">
+                <div className="p-6 flex-grow flex flex-col">
                   <h3 className="text-xl font-serif text-gray-900 mb-2 line-clamp-2">
                     {product.name}
                   </h3>
@@ -271,7 +208,7 @@ export default function ProductsPage() {
                   </div>
 
                   {/* Product Details */}
-                  <div className="space-y-2 mb-4">
+                  <div className="space-y-2 mb-4 flex-grow">
                     <div className="flex items-center text-sm text-gray-600">
                       <span className="font-medium mr-2">Fabric:</span>
                       <span>{product.fabric}</span>
@@ -283,7 +220,7 @@ export default function ProductsPage() {
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex gap-3">
+                  <div className="flex gap-3 mt-auto">
                     <Link
                       href={`/products/${product._id}`}
                       className="flex-1 bg-primary-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-primary-700 transition-colors text-center"
@@ -303,14 +240,6 @@ export default function ProductsPage() {
               </div>
             </div>
           ))}
-        </div>
-
-        {/* No Products Message */}
-        {filteredProducts.length === 0 && (
-          <div className="text-center py-16">
-            <div className="text-6xl mb-4">🧵</div>
-            <h3 className="text-2xl font-serif text-gray-900 mb-2">No products found</h3>
-            <p className="text-gray-600">Try adjusting your filters or check back soon for new arrivals.</p>
           </div>
         )}
       </div>
