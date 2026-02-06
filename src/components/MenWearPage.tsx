@@ -4,55 +4,26 @@ import { useState, useEffect } from 'react'
 import { Product } from '@/types/product'
 import Link from 'next/link'
 import ProductFilters from '@/components/ProductFilters'
+import { useCart } from '@/contexts/CartContext'
 
 async function getMenProducts(): Promise<Product[]> {
-  // Return dummy products for men's collection
-  const menProducts = [
-    {
-      _id: '2',
-      name: 'Kerala Mundu Set',
-      fabric: 'Handloom Cotton',
-      color: 'Off White',
-      price: '₹1,200',
-      stock: 'In Stock',
-      description: 'Traditional Kerala mundu set for men, handwoven with care',
-      images: ['/sample-images/ProductSample.jpeg'],
-      tags: ['mundu', 'traditional', 'cotton'],
-      shipping: 'Free shipping across India',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      _id: '4',
-      name: 'Kuthampully Set Mundu',
-      fabric: 'Pure Cotton',
-      color: 'Cream with Border',
-      price: '₹2,100',
-      stock: 'In Stock',
-      description: 'Traditional set mundu perfect for special occasions',
-      images: ['/sample-images/ProductSample.jpeg'],
-      tags: ['set-mundu', 'traditional', 'cotton'],
-      shipping: 'Free shipping across India',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      _id: '6',
-      name: 'Traditional Dhoti',
-      fabric: 'Handloom Cotton',
-      color: 'White',
-      price: '₹800',
-      stock: 'In Stock',
-      description: 'Comfortable traditional dhoti for daily wear',
-      images: ['/sample-images/ProductSample.jpeg'],
-      tags: ['dhoti', 'traditional', 'cotton'],
-      shipping: 'Free shipping across India',
-      createdAt: new Date(),
-      updatedAt: new Date()
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+    const response = await fetch(`${baseUrl}/api/supabase/products?category=men-wear&limit=12`, {
+      cache: 'no-store'
+    })
+    
+    if (!response.ok) {
+      console.error('Failed to fetch men products:', response.statusText)
+      return []
     }
-  ]
-
-  return menProducts
+    
+    const data = await response.json()
+    return data.success ? data.products : []
+  } catch (error) {
+    console.error('Error fetching men products:', error)
+    return []
+  }
 }
 
 function sortProducts(products: Product[], sortOption: string): Product[] {
@@ -118,6 +89,7 @@ function filterProducts(products: Product[], filters: {
 }
 
 export default function MenWearPage() {
+  const { addToCart } = useCart()
   const [products, setProducts] = useState<Product[]>([])
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
 
@@ -194,9 +166,9 @@ export default function MenWearPage() {
                     {product.name}
                   </h3>
                   <div className="flex items-center justify-between mb-4">
-                    <p className="text-2xl font-serif text-primary-700">{product.price}</p>
+                    <p className="text-2xl font-serif text-primary-700">₹{product.price}</p>
                     <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
-                      ✓ {product.stock}
+                      ✓ {parseInt(product.stock) > 0 ? 'In Stock' : 'Out of Stock'}
                     </span>
                   </div>
 
@@ -220,13 +192,26 @@ export default function MenWearPage() {
                     >
                       View Details
                     </Link>
+                    <button
+                      onClick={() => addToCart({
+                        _id: product._id!,
+                        name: product.name,
+                        price: product.price,
+                        image: product.images?.[0] || '/sample-images/ProductSample.jpeg',
+                        fabric: product.fabric,
+                        color: product.color
+                      })}
+                      className="bg-amber-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-amber-700 transition-colors inline-flex items-center"
+                    >
+                      🛒
+                    </button>
                     <a
                       href={`https://wa.me/917907730095?text=Hi, I'm interested in ${product.name} (${product.price})`}
                       className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700 transition-colors inline-flex items-center"
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      <span className="mr-1">📱</span>
+                      📱
                     </a>
                   </div>
                 </div>

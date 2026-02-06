@@ -4,55 +4,26 @@ import { useState, useEffect } from 'react'
 import { Product } from '@/types/product'
 import Link from 'next/link'
 import ProductFilters from '@/components/ProductFilters'
+import { useCart } from '@/contexts/CartContext'
 
 async function getCelebrityProducts(): Promise<Product[]> {
-  // Return dummy products for celebrity inspired collection
-  const celebrityProducts = [
-    {
-      _id: '5',
-      name: 'Celebrity Inspired Saree',
-      fabric: 'Premium Silk',
-      color: 'Royal Blue',
-      price: '₹8,500',
-      stock: 'Limited Stock',
-      description: 'Trending design inspired by celebrity styles',
-      images: ['/sample-images/ProductSample.jpeg'],
-      tags: ['celebrity', 'silk', 'designer'],
-      shipping: 'Free shipping across India',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      _id: '3',
-      name: 'Designer Handloom Saree',
-      fabric: 'Silk Blend',
-      color: 'Maroon with Gold',
-      price: '₹5,800',
-      stock: 'Limited Stock',
-      description: 'Elegant designer saree with traditional Kerala motifs',
-      images: ['/sample-images/ProductSample.jpeg'],
-      tags: ['designer', 'silk', 'traditional'],
-      shipping: 'Free shipping across India',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      _id: '7',
-      name: 'Bridal Collection Saree',
-      fabric: 'Pure Silk',
-      color: 'Red with Gold',
-      price: '₹12,000',
-      stock: 'Limited Stock',
-      description: 'Exquisite bridal saree with intricate traditional work',
-      images: ['/sample-images/ProductSample.jpeg'],
-      tags: ['bridal', 'silk', 'luxury'],
-      shipping: 'Free shipping across India',
-      createdAt: new Date(),
-      updatedAt: new Date()
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+    const response = await fetch(`${baseUrl}/api/supabase/products?category=celebrity-inspired&limit=12`, {
+      cache: 'no-store'
+    })
+    
+    if (!response.ok) {
+      console.error('Failed to fetch celebrity products:', response.statusText)
+      return []
     }
-  ]
-
-  return celebrityProducts
+    
+    const data = await response.json()
+    return data.success ? data.products : []
+  } catch (error) {
+    console.error('Error fetching celebrity products:', error)
+    return []
+  }
 }
 
 function sortProducts(products: Product[], sortOption: string): Product[] {
@@ -118,6 +89,7 @@ function filterProducts(products: Product[], filters: {
 }
 
 export default function CelebrityInspiredPage() {
+  const { addToCart } = useCart()
   const [products, setProducts] = useState<Product[]>([])
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
 
@@ -194,9 +166,9 @@ export default function CelebrityInspiredPage() {
                     {product.name}
                   </h3>
                   <div className="flex items-center justify-between mb-4">
-                    <p className="text-2xl font-serif text-primary-700">{product.price}</p>
+                    <p className="text-2xl font-serif text-primary-700">₹{product.price}</p>
                     <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
-                      ✓ {product.stock}
+                      ✓ {parseInt(product.stock) > 0 ? 'In Stock' : 'Out of Stock'}
                     </span>
                   </div>
 
@@ -220,13 +192,26 @@ export default function CelebrityInspiredPage() {
                     >
                       View Details
                     </Link>
+                    <button
+                      onClick={() => addToCart({
+                        _id: product._id!,
+                        name: product.name,
+                        price: product.price,
+                        image: product.images?.[0] || '/sample-images/ProductSample.jpeg',
+                        fabric: product.fabric,
+                        color: product.color
+                      })}
+                      className="bg-amber-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-amber-700 transition-colors inline-flex items-center"
+                    >
+                      🛒
+                    </button>
                     <a
                       href={`https://wa.me/917907730095?text=Hi, I'm interested in ${product.name} (${product.price})`}
                       className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700 transition-colors inline-flex items-center"
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      <span className="mr-1">📱</span>
+                      📱
                     </a>
                   </div>
                 </div>

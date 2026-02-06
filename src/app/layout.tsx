@@ -3,11 +3,11 @@ import { Inter } from 'next/font/google'
 import Link from 'next/link'
 import MobileMenu from '@/components/MobileMenu'
 import CartIcon from '@/components/CartIcon'
-import WishlistIcon from '@/components/WishlistIcon'
-import LoginButton from '@/components/LoginButton'
+// import WishlistIcon from '@/components/WishlistIcon'
+// import LoginButton from '@/components/LoginButton'
 import { CartProvider } from '@/contexts/CartContext'
-import { WishlistProvider } from '@/contexts/WishlistContext'
-import { AuthProvider } from '@/contexts/AuthContext'
+// import { WishlistProvider } from '@/contexts/WishlistContext'
+// import { AuthProvider } from '@/contexts/AuthContext'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -25,9 +25,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <AuthProvider>
           <CartProvider>
-            <WishlistProvider>
               <div className="min-h-screen bg-white">
               <header className="bg-white border-b border-gray-200">
                 <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -45,7 +43,10 @@ export default function RootLayout({
                     <div className="hidden md:block">
                       <div className="ml-10 flex items-center space-x-8">
                         <Link href="/" className="text-gray-700 hover:text-primary-600 text-sm font-medium transition-colors">Home</Link>
-                        <Link href="/products" className="text-gray-700 hover:text-primary-600 text-sm font-medium transition-colors">Products</Link>
+                        <Link href="/products" className="text-gray-700 hover:text-primary-600 text-sm font-medium transition-colors">All Products</Link>
+                        <Link href="/women-collection" className="text-gray-700 hover:text-primary-600 text-sm font-medium transition-colors">Women's Collection</Link>
+                        <Link href="/men-wear" className="text-gray-700 hover:text-primary-600 text-sm font-medium transition-colors">Men's Wear</Link>
+                        <Link href="/celebrity-inspired" className="text-gray-700 hover:text-primary-600 text-sm font-medium transition-colors">Celebrity Inspired</Link>
                         <Link href="/new-arrivals" className="text-gray-700 hover:text-primary-600 text-sm font-medium transition-colors">New Arrivals</Link>
                         <a href="https://wa.me/917907730095" className="bg-green-600 text-white px-5 py-2 rounded-md text-sm font-medium hover:bg-green-700 transition-colors inline-flex items-center">
                           <span className="mr-1">📱</span> WhatsApp Order
@@ -55,8 +56,8 @@ export default function RootLayout({
 
                     {/* Cart & Wishlist Icons */}
                     <div className="flex items-center space-x-2">
-                      <LoginButton />
-                      <WishlistIcon />
+                      {/* <LoginButton /> */}
+                      {/* <WishlistIcon /> */}
                       <CartIcon />
                       {/* Mobile Menu */}
                       <div className="md:hidden">
@@ -101,9 +102,7 @@ export default function RootLayout({
             </div>
           </footer>
         </div>
-              </WishlistProvider>
             </CartProvider>
-          </AuthProvider>
       </body>
     </html>
   )

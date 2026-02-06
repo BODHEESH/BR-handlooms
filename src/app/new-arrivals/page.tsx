@@ -1,65 +1,25 @@
 import { Product } from '@/types/product'
+import Link from 'next/link'
+import AddToCartButton from '@/components/AddToCartButton'
 
 async function getNewArrivals(): Promise<Product[]> {
-  // Return dummy new arrivals for demonstration
-  return [
-    {
-      _id: '9',
-      name: 'Festive Collection Saree',
-      fabric: 'Pure Silk',
-      color: 'Emerald Green',
-      price: '₹6,500',
-      stock: 'New Arrival',
-      description: 'Stunning festive saree with traditional Kerala embroidery',
-      images: ['/sample-images/ProductSample.jpeg'],
-      tags: ['festive', 'silk', 'new-arrival'],
-      shipping: 'Free shipping across India',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      _id: '10',
-      name: 'Modern Kasavu Design',
-      fabric: 'Handloom Cotton',
-      color: 'White with Modern Border',
-      price: '₹4,200',
-      stock: 'New Arrival',
-      description: 'Contemporary take on traditional kasavu design',
-      images: ['/sample-images/ProductSample.jpeg'],
-      tags: ['modern', 'kasavu', 'new-arrival'],
-      shipping: 'Free shipping across India',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      _id: '11',
-      name: 'Designer Set Mundu',
-      fabric: 'Premium Cotton',
-      color: 'Ivory with Gold',
-      price: '₹3,800',
-      stock: 'New Arrival',
-      description: 'Elegant set mundu with designer patterns',
-      images: ['/sample-images/ProductSample.jpeg'],
-      tags: ['designer', 'set-mundu', 'new-arrival'],
-      shipping: 'Free shipping across India',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      _id: '12',
-      name: 'Celebrity Style Mundu',
-      fabric: 'Luxury Cotton',
-      color: 'Off White',
-      price: '₹2,500',
-      stock: 'New Arrival',
-      description: 'Trending celebrity-inspired mundu design',
-      images: ['/sample-images/ProductSample.jpeg'],
-      tags: ['celebrity', 'mundu', 'new-arrival'],
-      shipping: 'Free shipping across India',
-      createdAt: new Date(),
-      updatedAt: new Date()
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+    const response = await fetch(`${baseUrl}/api/supabase/products?featured=true&limit=8`, {
+      cache: 'no-store'
+    })
+    
+    if (!response.ok) {
+      console.error('Failed to fetch new arrivals:', response.statusText)
+      return []
     }
-  ]
+    
+    const data = await response.json()
+    return data.success ? data.products : []
+  } catch (error) {
+    console.error('Error fetching new arrivals:', error)
+    return []
+  }
 }
 
 export default async function NewArrivalsPage() {
@@ -111,23 +71,43 @@ export default async function NewArrivalsPage() {
                   </div>
                   <div className="p-6">
                     <h3 className="text-lg font-serif text-gray-900 mb-2 group-hover:text-primary-700 transition-colors">
-                      <a href={`/products/${product._id}`}>
+                      <Link href={`/products/${product._id}`}>
                         {product.name}
-                      </a>
+                      </Link>
                     </h3>
                     <p className="text-sm text-gray-600 mb-1">{product.fabric} • {product.color}</p>
                     <div className="flex items-center justify-between mb-4">
-                      <p className="text-xl font-medium text-gray-900">{product.price}</p>
+                      <p className="text-xl font-medium text-gray-900">₹{product.price}</p>
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        {product.stock}
+                        {parseInt(product.stock) > 0 ? 'In Stock' : 'Out of Stock'}
                       </span>
                     </div>
-                    <a
-                      href={`https://wa.me/917907730095?text=Hi, I'm interested in ${product.name} (${product.price})`}
-                      className="w-full inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 transition-colors"
-                    >
-                      <span className="mr-2">📱</span> Order Now
-                    </a>
+                    <div className="flex gap-3">
+                      <Link
+                        href={`/products/${product._id}`}
+                        className="flex-1 bg-primary-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-primary-700 transition-colors text-center"
+                      >
+                        View Details
+                      </Link>
+                      <AddToCartButton
+                        product={{
+                          _id: product._id!,
+                          name: product.name,
+                          price: product.price,
+                          image: product.images?.[0] || '/sample-images/ProductSample.jpeg',
+                          fabric: product.fabric,
+                          color: product.color
+                        }}
+                      />
+                      <a
+                        href={`https://wa.me/917907730095?text=Hi, I'm interested in ${product.name} (${product.price})`}
+                        className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700 transition-colors inline-flex items-center"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        📱
+                      </a>
+                    </div>
                   </div>
                 </div>
               ))}

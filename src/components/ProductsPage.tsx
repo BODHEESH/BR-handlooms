@@ -5,21 +5,6 @@ import { Product } from '@/types/product'
 import Link from 'next/link'
 import ProductFilters from '@/components/ProductFilters'
 
-async function getProducts(): Promise<Product[]> {
-  try {
-    const response = await fetch('http://localhost:3000/api/products')
-    if (!response.ok) {
-      console.error('Failed to fetch products:', response.statusText)
-      return []
-    }
-    const data = await response.json()
-    return data.products || []
-  } catch (error) {
-    console.error('Error fetching products:', error)
-    return []
-  }
-}
-
 function sortProducts(products: Product[], sortOption: string): Product[] {
   const sorted = [...products]
   
@@ -87,15 +72,27 @@ export default function ProductsPage() {
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    const initializeProducts = async () => {
+  const fetchProducts = async () => {
+    try {
       setLoading(true)
-      const initialProducts = await getProducts()
-      setProducts(initialProducts)
-      setFilteredProducts(initialProducts)
+      const response = await fetch('/api/supabase/products')
+      const data = await response.json()
+      
+      if (data.success) {
+        setProducts(data.products)
+        setFilteredProducts(data.products)
+      } else {
+        console.error('Failed to fetch products:', data.error)
+      }
+    } catch (error) {
+      console.error('Error fetching products:', error)
+    } finally {
       setLoading(false)
     }
-    initializeProducts()
+  }
+
+  useEffect(() => {
+    fetchProducts()
   }, [])
 
   // Handle sort and filter changes

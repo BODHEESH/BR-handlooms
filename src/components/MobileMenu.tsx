@@ -61,7 +61,28 @@ export default function MobileMenu() {
                     className="block text-lg font-medium text-gray-700 hover:text-primary-600 transition-colors py-3 border-b border-gray-100"
                     onClick={() => setIsOpen(false)}
                   >
-                    Products
+                    All Products
+                  </Link>
+                  <Link
+                    href="/womens-collection"
+                    className="block text-lg font-medium text-gray-700 hover:text-primary-600 transition-colors py-3 border-b border-gray-100"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Women's Collection
+                  </Link>
+                  <Link
+                    href="/mens-wear"
+                    className="block text-lg font-medium text-gray-700 hover:text-primary-600 transition-colors py-3 border-b border-gray-100"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Men's Wear
+                  </Link>
+                  <Link
+                    href="/celebrity-inspired"
+                    className="block text-lg font-medium text-gray-700 hover:text-primary-600 transition-colors py-3 border-b border-gray-100"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Celebrity Inspired
                   </Link>
                   <Link
                     href="/new-arrivals"

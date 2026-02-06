@@ -4,69 +4,34 @@ import { useState, useEffect } from 'react'
 import { Product } from '@/types/product'
 import Link from 'next/link'
 import ProductFilters from '@/components/ProductFilters'
+import { useCart } from '@/contexts/CartContext'
 
 async function getWomenProducts(): Promise<Product[]> {
-  // Return dummy products for women's collection
-  const womenProducts = [
-    {
-      _id: '1',
-      name: 'Traditional Kuthampully Kasavu Saree',
-      fabric: 'Pure Cotton',
-      color: 'White with Gold Border',
-      price: '₹3,500',
-      stock: 'In Stock',
-      description: 'Authentic Kuthampully handloom kasavu saree with traditional gold border',
-      images: ['/sample-images/ProductSample.jpeg'],
-      tags: ['traditional', 'kasavu', 'cotton'],
-      shipping: 'Free shipping across India',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      _id: '3',
-      name: 'Designer Handloom Saree',
-      fabric: 'Silk Blend',
-      color: 'Maroon with Gold',
-      price: '₹5,800',
-      stock: 'Limited Stock',
-      description: 'Elegant designer saree with traditional Kerala motifs',
-      images: ['/sample-images/ProductSample.jpeg'],
-      tags: ['designer', 'silk', 'traditional'],
-      shipping: 'Free shipping across India',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      _id: '7',
-      name: 'Bridal Collection Saree',
-      fabric: 'Pure Silk',
-      color: 'Red with Gold',
-      price: '₹12,000',
-      stock: 'Limited Stock',
-      description: 'Exquisite bridal saree with intricate traditional work',
-      images: ['/sample-images/ProductSample.jpeg'],
-      tags: ['bridal', 'silk', 'luxury'],
-      shipping: 'Free shipping across India',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      _id: '8',
-      name: 'Casual Cotton Saree',
-      fabric: 'Soft Cotton',
-      color: 'Light Green',
-      price: '₹1,800',
-      stock: 'In Stock',
-      description: 'Light and comfortable saree perfect for daily wear',
-      images: ['/sample-images/ProductSample.jpeg'],
-      tags: ['casual', 'cotton', 'daily-wear'],
-      shipping: 'Free shipping across India',
-      createdAt: new Date(),
-      updatedAt: new Date()
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+    console.log('getWomenProducts - Fetching from:', `${baseUrl}/api/supabase/products?category=womens-collection&limit=12`)
+    
+    const response = await fetch(`${baseUrl}/api/supabase/products?category=womens-collection&limit=12`, {
+      cache: 'no-store'
+    })
+    
+    console.log('getWomenProducts - Response status:', response.status)
+    
+    if (!response.ok) {
+      console.error('Failed to fetch women products:', response.statusText)
+      return []
     }
-  ]
-
-  return womenProducts
+    
+    const data = await response.json()
+    console.log('getWomenProducts - Raw data:', data)
+    console.log('getWomenProducts - Success:', data.success)
+    console.log('getWomenProducts - Products array:', data.products)
+    
+    return data.success ? data.products : []
+  } catch (error) {
+    console.error('Error fetching women products:', error)
+    return []
+  }
 }
 
 function sortProducts(products: Product[], sortOption: string): Product[] {
@@ -132,14 +97,20 @@ function filterProducts(products: Product[], filters: {
 }
 
 export default function WomenCollectionPage() {
+  const { addToCart } = useCart()
   const [products, setProducts] = useState<Product[]>([])
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
 
   useEffect(() => {
     const initializeProducts = async () => {
+      console.log('WomenCollectionPage - Starting fetch...')
       const initialProducts = await getWomenProducts()
+      console.log('WomenCollectionPage - Products fetched:', initialProducts)
+      console.log('WomenCollectionPage - Products length:', initialProducts?.length)
+      console.log('WomenCollectionPage - First product:', initialProducts?.[0])
       setProducts(initialProducts)
-      setFilteredProducts(initialProducts)
+      setFilteredProducts(initialProducts) // Don't apply filters initially
+      console.log('WomenCollectionPage - State updated')
     }
     initializeProducts()
   }, [])
@@ -181,10 +152,10 @@ export default function WomenCollectionPage() {
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Filters - Temporarily disabled for debugging */}
+      {/* <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <ProductFilters onSortChange={handleSortChange} onFilterChange={handleFilterChange} />
-      </div>
+      </div> */}
 
       {/* Products Grid */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
@@ -208,9 +179,9 @@ export default function WomenCollectionPage() {
                     {product.name}
                   </h3>
                   <div className="flex items-center justify-between mb-4">
-                    <p className="text-2xl font-serif text-primary-700">{product.price}</p>
+                    <p className="text-2xl font-serif text-primary-700">₹{product.price}</p>
                     <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
-                      ✓ {product.stock}
+                      ✓ {parseInt(product.stock) > 0 ? 'In Stock' : 'Out of Stock'}
                     </span>
                   </div>
 
@@ -234,13 +205,26 @@ export default function WomenCollectionPage() {
                     >
                       View Details
                     </Link>
+                    <button
+                      onClick={() => addToCart({
+                        _id: product._id!,
+                        name: product.name,
+                        price: product.price,
+                        image: product.images?.[0] || '/sample-images/ProductSample.jpeg',
+                        fabric: product.fabric,
+                        color: product.color
+                      })}
+                      className="bg-amber-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-amber-700 transition-colors inline-flex items-center"
+                    >
+                      🛒
+                    </button>
                     <a
                       href={`https://wa.me/917907730095?text=Hi, I'm interested in ${product.name} (${product.price})`}
                       className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700 transition-colors inline-flex items-center"
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      <span className="mr-1">📱</span>
+                      📱
                     </a>
                   </div>
                 </div>
@@ -255,6 +239,16 @@ export default function WomenCollectionPage() {
             <div className="text-6xl mb-4">🧵</div>
             <h3 className="text-2xl font-serif text-gray-900 mb-2">No products found</h3>
             <p className="text-gray-600">Try adjusting your filters or check back soon for new arrivals.</p>
+            {/* Debug Info */}
+            <div className="mt-4 p-4 bg-gray-100 rounded text-left max-w-2xl mx-auto">
+              <p className="text-sm font-mono font-bold">Debug Info:</p>
+              <p className="text-xs font-mono">Products length: {products.length}</p>
+              <p className="text-xs font-mono">Filtered products length: {filteredProducts.length}</p>
+              <p className="text-xs font-mono">First product exists: {products[0] ? 'YES' : 'NO'}</p>
+              <p className="text-xs font-mono">First product name: {products[0]?.name || 'N/A'}</p>
+              <p className="text-xs font-mono">First product price: {products[0]?.price || 'N/A'}</p>
+              <p className="text-xs font-mono">First product stock: {products[0]?.stock || 'N/A'}</p>
+            </div>
           </div>
         )}
       </div>

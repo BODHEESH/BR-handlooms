@@ -4,6 +4,11 @@ import { useCart } from '@/contexts/CartContext'
 import Link from 'next/link'
 import Image from 'next/image'
 
+function safeParsePrice(price: string | number): number {
+  if (typeof price === 'number') return price
+  return parseFloat(String(price).replace(/[₹,]/g, '')) || 0
+}
+
 export default function CartPage() {
   const { cart, removeFromCart, updateQuantity, clearCart } = useCart()
 
@@ -56,7 +61,7 @@ export default function CartPage() {
                           <div>
                             <h3 className="text-lg font-medium text-gray-900">{item.name}</h3>
                             <p className="text-sm text-gray-600 mt-1">{item.fabric} • {item.color}</p>
-                            <p className="text-lg font-semibold text-primary-700 mt-2">{item.price}</p>
+                            <p className="text-lg font-semibold text-primary-700 mt-2">₹{safeParsePrice(item.price).toLocaleString()}</p>
                           </div>
                           <button
                             onClick={() => removeFromCart(item._id)}
@@ -86,7 +91,7 @@ export default function CartPage() {
                             </button>
                           </div>
                           <span className="text-sm text-gray-600 ml-4">
-                            Subtotal: {item.price} × {item.quantity} = ₹{(parseFloat(item.price.replace(/[₹,]/g, '')) * item.quantity).toLocaleString()}
+                            Subtotal: ₹{safeParsePrice(item.price).toLocaleString()} × {item.quantity} = ₹{(safeParsePrice(item.price) * item.quantity).toLocaleString()}
                           </span>
                         </div>
                       </div>

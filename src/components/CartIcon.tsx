@@ -54,7 +54,7 @@ export default function CartIcon() {
                         <h4 className="font-medium text-gray-900 text-sm line-clamp-1">{item.name}</h4>
                         <p className="text-xs text-gray-600">{item.fabric} • {item.color}</p>
                         <div className="flex items-center justify-between mt-1">
-                          <span className="font-semibold text-primary-700">{item.price}</span>
+                          <span className="font-semibold text-primary-700">₹{Number(String(item.price).replace(/[₹,]/g, '')).toLocaleString()}</span>
                           <span className="text-sm text-gray-600">Qty: {item.quantity}</span>
                         </div>
                       </div>
@@ -76,15 +76,13 @@ export default function CartIcon() {
                   >
                     View Cart
                   </Link>
-                  <button
-                    className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
-                    onClick={() => {
-                      window.open(`https://wa.me/917907730095?text=Hi, I'd like to place an order for ${cart.itemCount} items with a total of ₹${cart.total.toLocaleString()}`, '_blank')
-                      setIsOpen(false)
-                    }}
+                  <Link
+                    href="/checkout"
+                    className="bg-green-600 text-white px-4 py-2 rounded-lg text-center text-sm font-medium hover:bg-green-700 transition-colors"
+                    onClick={() => setIsOpen(false)}
                   >
                     Checkout
-                  </button>
+                  </Link>
                 </div>
               </div>
             </>

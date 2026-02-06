@@ -1,11 +1,13 @@
 'use client'
 
-import { createContext, useContext, useReducer, useEffect, ReactNode } from 'react'
+import { createContext, useContext, useReducer, useEffect, useCallback, ReactNode } from 'react'
+
+const CART_STORAGE_KEY = 'br_handlooms_cart'
 
 export interface CartItem {
   _id: string
   name: string
-  price: string
+  price: string | number
   image: string
   quantity: number
   fabric: string
@@ -22,9 +24,6 @@ interface CartState {
 type CartAction =
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_CART'; payload: { items: CartItem[]; total: number; itemCount: number } }
-  | { type: 'ADD_TO_CART'; payload: Omit<CartItem, 'quantity'> }
-  | { type: 'REMOVE_FROM_CART'; payload: string }
-  | { type: 'UPDATE_QUANTITY'; payload: { id: string; quantity: number } }
   | { type: 'CLEAR_CART' }
 
 const initialState: CartState = {
@@ -34,14 +33,54 @@ const initialState: CartState = {
   loading: true
 }
 
+function calculateTotal(items: CartItem[]): number {
+  return items.reduce((sum, item) => {
+    const price = parseFloat(String(item.price).replace(/[₹,]/g, '')) || 0
+    return sum + price * item.quantity
+  }, 0)
+}
+
+function calculateItemCount(items: CartItem[]): number {
+  return items.reduce((sum, item) => sum + item.quantity, 0)
+}
+
+function saveToLocalStorage(items: CartItem[]) {
+  try {
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items))
+  } catch (error) {
+    console.error('Error saving cart to localStorage:', error)
+  }
+}
+
+function loadFromLocalStorage(): CartItem[] {
+  try {
+    const stored = localStorage.getItem(CART_STORAGE_KEY)
+    if (stored) {
+      return JSON.parse(stored)
+    }
+  } catch (error) {
+    console.error('Error loading cart from localStorage:', error)
+  }
+  return []
+}
+
 function cartReducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
     case 'SET_LOADING':
       return { ...state, loading: action.payload }
-    
+
     case 'SET_CART':
-      return { ...state, items: action.payload.items, total: action.payload.total, itemCount: action.payload.itemCount, loading: false }
-    
+      return {
+        ...state,
+        items: action.payload.items,
+        total: action.payload.total,
+        itemCount: action.payload.itemCount,
+        loading: false
+      }
+
+    case 'CLEAR_CART':
+      return { ...state, items: [], total: 0, itemCount: 0, loading: false }
+
     default:
       return state
   }
@@ -60,105 +99,67 @@ const CartContext = createContext<CartContextType | undefined>(undefined)
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [cart, dispatch] = useReducer(cartReducer, initialState)
-  
-  // Load cart from API on mount
-  const refreshCart = async () => {
-    try {
-      dispatch({ type: 'SET_LOADING', payload: true })
-      const response = await fetch('/api/cart')
-      if (response.ok) {
-        const data = await response.json()
-        dispatch({ type: 'SET_CART', payload: data.cart })
+
+  const syncCart = useCallback((items: CartItem[]) => {
+    saveToLocalStorage(items)
+    dispatch({
+      type: 'SET_CART',
+      payload: {
+        items,
+        total: calculateTotal(items),
+        itemCount: calculateItemCount(items)
       }
-    } catch (error) {
-      console.error('Error loading cart:', error)
-    } finally {
-      dispatch({ type: 'SET_LOADING', payload: false })
-    }
-  }
-  
+    })
+  }, [])
+
+  // Load cart from localStorage on mount
+  const refreshCart = useCallback(async () => {
+    const items = loadFromLocalStorage()
+    syncCart(items)
+  }, [syncCart])
+
   useEffect(() => {
     refreshCart()
-  }, [])
-  
+  }, [refreshCart])
+
   const addToCart = async (product: Omit<CartItem, 'quantity'>) => {
-    try {
-      const response = await fetch('/api/cart', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'add',
-          item: { ...product, productId: product._id }
-        })
-      })
-      
-      if (response.ok) {
-        const data = await response.json()
-        dispatch({ type: 'SET_CART', payload: data.cart })
-      }
-    } catch (error) {
-      console.error('Error adding to cart:', error)
+    const items = loadFromLocalStorage()
+    const existingIndex = items.findIndex(item => item._id === product._id)
+
+    if (existingIndex >= 0) {
+      items[existingIndex].quantity += 1
+    } else {
+      items.push({ ...product, quantity: 1 })
     }
+
+    syncCart(items)
   }
-  
+
   const removeFromCart = async (id: string) => {
-    try {
-      const response = await fetch('/api/cart', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'remove',
-          item: { productId: id }
-        })
-      })
-      
-      if (response.ok) {
-        const data = await response.json()
-        dispatch({ type: 'SET_CART', payload: data.cart })
-      }
-    } catch (error) {
-      console.error('Error removing from cart:', error)
-    }
+    const items = loadFromLocalStorage().filter(item => item._id !== id)
+    syncCart(items)
   }
-  
+
   const updateQuantity = async (id: string, quantity: number) => {
-    try {
-      const response = await fetch('/api/cart', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'update',
-          item: { productId: id },
-          quantity
-        })
-      })
-      
-      if (response.ok) {
-        const data = await response.json()
-        dispatch({ type: 'SET_CART', payload: data.cart })
+    const items = loadFromLocalStorage()
+    const index = items.findIndex(item => item._id === id)
+
+    if (index >= 0) {
+      if (quantity <= 0) {
+        items.splice(index, 1)
+      } else {
+        items[index].quantity = quantity
       }
-    } catch (error) {
-      console.error('Error updating quantity:', error)
     }
+
+    syncCart(items)
   }
-  
+
   const clearCart = async () => {
-    try {
-      const response = await fetch('/api/cart', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'clear' })
-      })
-      
-      if (response.ok) {
-        const data = await response.json()
-        dispatch({ type: 'SET_CART', payload: data.cart })
-      }
-    } catch (error) {
-      console.error('Error clearing cart:', error)
-    }
+    saveToLocalStorage([])
+    dispatch({ type: 'CLEAR_CART' })
   }
-  
+
   return (
     <CartContext.Provider value={{
       cart,
