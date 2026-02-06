@@ -117,8 +117,8 @@ export default function CheckoutPage() {
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="text-center">
-            <h1 className="text-3xl font-serif text-gray-900 mb-4">Your cart is empty</h1>
-            <p className="text-gray-600 mb-8">Add some products to your cart before checkout.</p>
+            <h1 className="text-2xl sm:text-3xl font-serif text-gray-900 mb-4">Your cart is empty</h1>
+            <p className="text-gray-600 mb-6 text-sm sm:text-base">Add some products to your cart before checkout.</p>
             <Link
               href="/products"
               className="inline-flex items-center px-8 py-3 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors"
@@ -133,13 +133,13 @@ export default function CheckoutPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-serif text-gray-900 mb-8">Checkout</h1>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <h1 className="text-2xl sm:text-3xl font-serif text-gray-900 mb-6">Checkout</h1>
         
         <div className="lg:grid lg:grid-cols-12 lg:gap-x-12">
           {/* Checkout Form */}
           <div className="lg:col-span-8">
-            <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
               <h2 className="text-lg font-medium text-gray-900 mb-6">Shipping Information</h2>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -309,8 +309,8 @@ export default function CheckoutPage() {
           </div>
 
           {/* Order Summary */}
-          <div className="lg:col-span-4 mt-8 lg:mt-0">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sticky top-8">
+          <div className="lg:col-span-4 mt-6 lg:mt-0">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 lg:sticky lg:top-8">
               <h2 className="text-lg font-medium text-gray-900 mb-4">Order Summary</h2>
               
               <div className="space-y-4 mb-6">

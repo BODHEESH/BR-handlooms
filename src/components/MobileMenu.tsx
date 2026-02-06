@@ -11,7 +11,7 @@ export default function MobileMenu() {
       {/* Hamburger Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="md:hidden relative w-8 h-8 flex flex-col justify-center items-center"
+        className="lg:hidden relative w-8 h-8 flex flex-col justify-center items-center"
         aria-label="Toggle menu"
       >
         <span className={`block w-6 h-0.5 bg-gray-700 transition-all duration-300 ${isOpen ? 'rotate-45 translate-y-1.5' : ''}`}></span>
@@ -21,7 +21,7 @@ export default function MobileMenu() {
 
       {/* Sidebar Overlay */}
       {isOpen && (
-        <div className="fixed inset-0 z-50 md:hidden">
+        <div className="fixed inset-0 z-50 lg:hidden">
           {/* Backdrop */}
           <div 
             className="fixed inset-0 bg-black/50 backdrop-blur-sm"
@@ -64,14 +64,14 @@ export default function MobileMenu() {
                     All Products
                   </Link>
                   <Link
-                    href="/womens-collection"
+                    href="/women-collection"
                     className="block text-lg font-medium text-gray-700 hover:text-primary-600 transition-colors py-3 border-b border-gray-100"
                     onClick={() => setIsOpen(false)}
                   >
                     Women's Collection
                   </Link>
                   <Link
-                    href="/mens-wear"
+                    href="/men-wear"
                     className="block text-lg font-medium text-gray-700 hover:text-primary-600 transition-colors py-3 border-b border-gray-100"
                     onClick={() => setIsOpen(false)}
                   >

@@ -44,32 +44,31 @@ export default function Home() {
       </div>
 
       {/* Category Showcase */}
-      <div className="py-16 bg-white">
+      <div className="py-10 sm:py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {/* Women's Collection */}
             <Link href="/women-collection"
              className="group relative overflow-hidden rounded-lg shadow-lg hover:shadow-2xl transition-all duration-300">
-              <div className="h-[600px] relative bg-gray-100">
+              <div className="h-[300px] sm:h-[400px] lg:h-[500px] relative bg-gray-100">
                 <img
-                  // src="/sample-images/Women's Collection.jpeg"
-                   src="/sample-images/Women's Collection5.jpeg"
+                  src="/sample-images/Women's Collection5.jpeg"
                   alt="Women's Collection"
                   className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
               </div>
               <div className="absolute inset-0 flex items-end">
-                <div className="p-8 text-white w-full">
-                  <h3 className="text-3xl font-serif mb-3">Women's Collection</h3>
-                  <p className="text-base text-gray-100">Elegant sarees & traditional wear</p>
+                <div className="p-4 sm:p-8 text-white w-full">
+                  <h3 className="text-xl sm:text-3xl font-serif mb-1 sm:mb-3">Women&apos;s Collection</h3>
+                  <p className="text-sm sm:text-base text-gray-100">Elegant sarees & traditional wear</p>
                 </div>
               </div>
             </Link>
 
             {/* Men's Wear */}
             <Link href="/men-wear" className="group relative overflow-hidden rounded-lg shadow-lg hover:shadow-2xl transition-all duration-300">
-              <div className="h-[600px] relative bg-gray-100">
+              <div className="h-[300px] sm:h-[400px] lg:h-[500px] relative bg-gray-100">
                 <img
                   src="/sample-images/Mens collections.png"
                   alt="Men's Wear"
@@ -78,29 +77,27 @@ export default function Home() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
               </div>
               <div className="absolute inset-0 flex items-end">
-                <div className="p-8 text-white w-full">
-                  <h3 className="text-3xl font-serif mb-3">Men's Wear</h3>
-                  <p className="text-base text-gray-100">Dhotis, mundus & traditional attire</p>
+                <div className="p-4 sm:p-8 text-white w-full">
+                  <h3 className="text-xl sm:text-3xl font-serif mb-1 sm:mb-3">Men&apos;s Wear</h3>
+                  <p className="text-sm sm:text-base text-gray-100">Dhotis, mundus & traditional attire</p>
                 </div>
               </div>
             </Link>
 
             {/* Celebrity Inspired */}
             <Link href="/celebrity-inspired" className="group relative overflow-hidden rounded-lg shadow-lg hover:shadow-2xl transition-all duration-300">
-              <div className="h-[600px] relative bg-gray-100">
+              <div className="h-[300px] sm:h-[400px] lg:h-[500px] relative bg-gray-100">
                 <img
-                  // src="/sample-images/sara-arjun1.jpg"
                   src="/sample-images/sara-arjun.jpg"
-                  // src="/sample-images/sara-arjun.WEBP"
                   alt="Celebrity Inspired"
                   className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
               </div>
               <div className="absolute inset-0 flex items-end">
-                <div className="p-8 text-white w-full">
-                  <h3 className="text-3xl font-serif mb-3">Celebrity Inspired</h3>
-                  <p className="text-base text-gray-100">Trending styles & designer pieces</p>
+                <div className="p-4 sm:p-8 text-white w-full">
+                  <h3 className="text-xl sm:text-3xl font-serif mb-1 sm:mb-3">Celebrity Inspired</h3>
+                  <p className="text-sm sm:text-base text-gray-100">Trending styles & designer pieces</p>
                 </div>
               </div>
             </Link>

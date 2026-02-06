@@ -40,15 +40,15 @@ export default function RootLayout({
                     </div>
                     
                     {/* Desktop Navigation */}
-                    <div className="hidden md:block">
-                      <div className="ml-10 flex items-center space-x-8">
-                        <Link href="/" className="text-gray-700 hover:text-primary-600 text-sm font-medium transition-colors">Home</Link>
-                        <Link href="/products" className="text-gray-700 hover:text-primary-600 text-sm font-medium transition-colors">All Products</Link>
-                        <Link href="/women-collection" className="text-gray-700 hover:text-primary-600 text-sm font-medium transition-colors">Women's Collection</Link>
-                        <Link href="/men-wear" className="text-gray-700 hover:text-primary-600 text-sm font-medium transition-colors">Men's Wear</Link>
-                        <Link href="/celebrity-inspired" className="text-gray-700 hover:text-primary-600 text-sm font-medium transition-colors">Celebrity Inspired</Link>
-                        <Link href="/new-arrivals" className="text-gray-700 hover:text-primary-600 text-sm font-medium transition-colors">New Arrivals</Link>
-                        <a href="https://wa.me/917907730095" className="bg-green-600 text-white px-5 py-2 rounded-md text-sm font-medium hover:bg-green-700 transition-colors inline-flex items-center">
+                    <div className="hidden lg:block">
+                      <div className="ml-6 flex items-center space-x-5 xl:space-x-7">
+                        <Link href="/" className="text-gray-700 hover:text-primary-600 text-sm font-medium transition-colors whitespace-nowrap">Home</Link>
+                        <Link href="/products" className="text-gray-700 hover:text-primary-600 text-sm font-medium transition-colors whitespace-nowrap">All Products</Link>
+                        <Link href="/women-collection" className="text-gray-700 hover:text-primary-600 text-sm font-medium transition-colors whitespace-nowrap">Women&apos;s Collection</Link>
+                        <Link href="/men-wear" className="text-gray-700 hover:text-primary-600 text-sm font-medium transition-colors whitespace-nowrap">Men&apos;s Wear</Link>
+                        <Link href="/celebrity-inspired" className="text-gray-700 hover:text-primary-600 text-sm font-medium transition-colors whitespace-nowrap">Celebrity Inspired</Link>
+                        <Link href="/new-arrivals" className="text-gray-700 hover:text-primary-600 text-sm font-medium transition-colors whitespace-nowrap">New Arrivals</Link>
+                        <a href="https://wa.me/917907730095" className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700 transition-colors inline-flex items-center whitespace-nowrap">
                           <span className="mr-1">📱</span> WhatsApp Order
                         </a>
                       </div>
@@ -60,7 +60,7 @@ export default function RootLayout({
                       {/* <WishlistIcon /> */}
                       <CartIcon />
                       {/* Mobile Menu */}
-                      <div className="md:hidden">
+                      <div className="lg:hidden">
                         <MobileMenu />
                       </div>
                     </div>
