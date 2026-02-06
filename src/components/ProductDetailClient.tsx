@@ -4,7 +4,7 @@ import { Product } from '@/types/product'
 import Link from 'next/link'
 import ProductGallery from '@/components/ProductGallery'
 import { useCart } from '@/contexts/CartContext'
-import { useWishlist } from '@/contexts/WishlistContext'
+// import { useWishlist } from '@/contexts/WishlistContext'
 import { useState } from 'react'
 
 interface ProductDetailClientProps {
@@ -12,11 +12,13 @@ interface ProductDetailClientProps {
 }
 
 export default function ProductDetailClient({ product }: ProductDetailClientProps) {
+  console.log('ProductDetailClient received product:', product)
+  
   const { addToCart } = useCart()
-  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist()
+  // const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist()
   const [quantity, setQuantity] = useState(1)
   const [showAddedToCart, setShowAddedToCart] = useState(false)
-  const [showAddedToWishlist, setShowAddedToWishlist] = useState(false)
+  // const [showAddedToWishlist, setShowAddedToWishlist] = useState(false)
 
   const handleAddToCart = () => {
     addToCart({
@@ -32,22 +34,22 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
     setTimeout(() => setShowAddedToCart(false), 2000)
   }
 
-  const handleWishlistToggle = () => {
-    if (isInWishlist(product._id!)) {
-      removeFromWishlist(product._id!)
-    } else {
-      addToWishlist({
-        _id: product._id!,
-        name: product.name,
-        price: product.price,
-        image: product.images?.[0] || '/sample-images/ProductSample.jpeg',
-        fabric: product.fabric,
-        color: product.color
-      })
-      setShowAddedToWishlist(true)
-      setTimeout(() => setShowAddedToWishlist(false), 2000)
-    }
-  }
+  // const handleWishlistToggle = () => {
+  //   if (isInWishlist(product._id!)) {
+  //     removeFromWishlist(product._id!)
+  //   } else {
+  //     addToWishlist({
+  //       _id: product._id!,
+  //       name: product.name,
+  //       price: product.price,
+  //       image: product.images?.[0] || '/sample-images/ProductSample.jpeg',
+  //       fabric: product.fabric,
+  //       color: product.color
+  //     })
+  //     setShowAddedToWishlist(true)
+  //     setTimeout(() => setShowAddedToWishlist(false), 2000)
+  //   }
+  // }
 
   return (
     <div className="bg-gradient-to-b from-white to-amber-50">
@@ -218,7 +220,8 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                     <span className="mr-2 text-xl">📱</span> Place Order
                   </a>
                 </div>
-                <button
+                {/* Wishlist button - to be implemented later */}
+                {/* <button
                   type="button"
                   onClick={handleWishlistToggle}
                   className={`w-full border-2 rounded-lg py-4 px-6 flex items-center justify-center text-base font-medium transition-all ${
@@ -234,7 +237,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                       Added to wishlist!
                     </span>
                   )}
-                </button>
+                </button> */}
               </div>
             </div>
 

@@ -17,6 +17,11 @@ interface CheckoutFormData {
   paymentMethod: 'cod' | 'whatsapp'
 }
 
+function safeParsePrice(price: string | number): number {
+  if (typeof price === 'number') return price
+  return parseFloat(String(price).replace(/[₹,]/g, '')) || 0
+}
+
 export default function CheckoutPage() {
   const { cart, clearCart } = useCart()
   const router = useRouter()
@@ -45,41 +50,66 @@ export default function CheckoutPage() {
     e.preventDefault()
     setIsSubmitting(true)
 
-    // Create order details message
-    const orderDetails = cart.items.map((item, index) => 
-      `${index + 1}. ${item.name}\n   • Fabric: ${item.fabric}\n   • Color: ${item.color}\n   • Price: ${item.price} × ${item.quantity} = ₹${(parseFloat(item.price.replace(/[₹,]/g, '')) * item.quantity).toLocaleString()}`
-    ).join('\n\n')
+    try {
+      // 1. Save order + address to database
+      const orderPayload = {
+        customer_name: `${formData.firstName} ${formData.lastName}`.trim(),
+        email: formData.email,
+        phone: formData.phone,
+        address: formData.address,
+        city: formData.city,
+        state: formData.state,
+        pincode: formData.pincode,
+        payment_method: formData.paymentMethod,
+        items: cart.items.map(item => ({
+          product_id: item._id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          fabric: item.fabric,
+          color: item.color
+        })),
+        subtotal: cart.total,
+        total_amount: cart.total
+      }
 
-    const message = `🛍️ *New Order - BR Handlooms* 🛍️
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderPayload)
+      })
 
-👤 *Customer Details:*
-${formData.firstName} ${formData.lastName}
-📧 ${formData.email}
-📱 ${formData.phone}
+      const result = await response.json()
 
-🏠 *Shipping Address:*
-${formData.address}
-${formData.city}, ${formData.state} - ${formData.pincode}
+      if (!result.success) {
+        console.error('Failed to save order:', result.error)
+      }
 
-📦 *Order Details:*
-${orderDetails}
+      const orderNumber = result.order?.order_number || 'N/A'
 
-💰 *Total Amount: ₹${cart.total.toLocaleString()}*
+      // 2. Build WhatsApp message
+      const orderDetails = cart.items.map((item, index) => 
+        `${index + 1}. ${item.name}\n   Fabric: ${item.fabric}\n   Color: ${item.color}\n   Price: ₹${safeParsePrice(item.price)} x ${item.quantity} = ₹${(safeParsePrice(item.price) * item.quantity).toLocaleString()}`
+      ).join('\n\n')
 
-🚚 *Shipping: Free*
-💳 *Payment: ${formData.paymentMethod === 'cod' ? 'Cash on Delivery' : 'WhatsApp Order Confirmation'}*
+      const message = `🛍️ *New Order - BR Handlooms* 🛍️\n*Order #${orderNumber}*\n\n👤 *Customer Details:*\n${formData.firstName} ${formData.lastName}\n📧 ${formData.email}\n📱 ${formData.phone}\n\n🏠 *Shipping Address:*\n${formData.address}\n${formData.city}, ${formData.state} - ${formData.pincode}\n\n📦 *Order Details:*\n${orderDetails}\n\n💰 *Total Amount: ₹${cart.total.toLocaleString()}*\n\n🚚 *Shipping: Free*\n💳 *Payment: ${formData.paymentMethod === 'cod' ? 'Cash on Delivery' : 'WhatsApp Order Confirmation'}*\n\nPlease confirm the order and share payment details. Thank you! 🙏`
 
-Please confirm the order and share payment details. Thank you! 🙏`
+      // 3. Redirect to WhatsApp
+      const whatsappUrl = `https://wa.me/917907730095?text=${encodeURIComponent(message)}`
+      window.open(whatsappUrl, '_blank')
 
-    // Send to WhatsApp
-    const whatsappUrl = `https://wa.me/917907730095?text=${encodeURIComponent(message)}`
-    window.open(whatsappUrl, '_blank')
+      // 4. Clear cart and redirect to success page
+      setTimeout(() => {
+        clearCart()
+        router.push('/checkout/success')
+      }, 2000)
 
-    // Clear cart and redirect to success page
-    setTimeout(() => {
-      clearCart()
-      router.push('/checkout/success')
-    }, 2000)
+    } catch (error) {
+      console.error('Error placing order:', error)
+      alert('There was an error placing your order. Please try again.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   if (cart.items.length === 0) {
@@ -87,8 +117,8 @@ Please confirm the order and share payment details. Thank you! 🙏`
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="text-center">
-            <h1 className="text-3xl font-serif text-gray-900 mb-4">Your cart is empty</h1>
-            <p className="text-gray-600 mb-8">Add some products to your cart before checkout.</p>
+            <h1 className="text-2xl sm:text-3xl font-serif text-gray-900 mb-4">Your cart is empty</h1>
+            <p className="text-gray-600 mb-6 text-sm sm:text-base">Add some products to your cart before checkout.</p>
             <Link
               href="/products"
               className="inline-flex items-center px-8 py-3 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors"
@@ -103,13 +133,13 @@ Please confirm the order and share payment details. Thank you! 🙏`
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-serif text-gray-900 mb-8">Checkout</h1>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <h1 className="text-2xl sm:text-3xl font-serif text-gray-900 mb-6">Checkout</h1>
         
         <div className="lg:grid lg:grid-cols-12 lg:gap-x-12">
           {/* Checkout Form */}
           <div className="lg:col-span-8">
-            <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
               <h2 className="text-lg font-medium text-gray-900 mb-6">Shipping Information</h2>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -279,8 +309,8 @@ Please confirm the order and share payment details. Thank you! 🙏`
           </div>
 
           {/* Order Summary */}
-          <div className="lg:col-span-4 mt-8 lg:mt-0">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sticky top-8">
+          <div className="lg:col-span-4 mt-6 lg:mt-0">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 lg:sticky lg:top-8">
               <h2 className="text-lg font-medium text-gray-900 mb-4">Order Summary</h2>
               
               <div className="space-y-4 mb-6">
@@ -296,7 +326,7 @@ Please confirm the order and share payment details. Thank you! 🙏`
                       <p className="text-xs text-gray-600">{item.fabric} • Qty: {item.quantity}</p>
                     </div>
                     <span className="text-sm font-medium text-gray-900">
-                      ₹{(parseFloat(item.price.replace(/[₹,]/g, '')) * item.quantity).toLocaleString()}
+                      ₹{(safeParsePrice(item.price) * item.quantity).toLocaleString()}
                     </span>
                   </div>
                 ))}

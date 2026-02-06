@@ -4,72 +4,41 @@ import { useState, useEffect } from 'react'
 import { Product } from '@/types/product'
 import Link from 'next/link'
 import ProductFilters from '@/components/ProductFilters'
+import { useCart } from '@/contexts/CartContext'
+
+function safePrice(price: string | number): number {
+  if (typeof price === 'number') return price
+  return parseFloat(String(price).replace(/[₹,]/g, '')) || 0
+}
 
 async function getCelebrityProducts(): Promise<Product[]> {
-  // Return dummy products for celebrity inspired collection
-  const celebrityProducts = [
-    {
-      _id: '5',
-      name: 'Celebrity Inspired Saree',
-      fabric: 'Premium Silk',
-      color: 'Royal Blue',
-      price: '₹8,500',
-      stock: 'Limited Stock',
-      description: 'Trending design inspired by celebrity styles',
-      images: ['/sample-images/ProductSample.jpeg'],
-      tags: ['celebrity', 'silk', 'designer'],
-      shipping: 'Free shipping across India',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      _id: '3',
-      name: 'Designer Handloom Saree',
-      fabric: 'Silk Blend',
-      color: 'Maroon with Gold',
-      price: '₹5,800',
-      stock: 'Limited Stock',
-      description: 'Elegant designer saree with traditional Kerala motifs',
-      images: ['/sample-images/ProductSample.jpeg'],
-      tags: ['designer', 'silk', 'traditional'],
-      shipping: 'Free shipping across India',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      _id: '7',
-      name: 'Bridal Collection Saree',
-      fabric: 'Pure Silk',
-      color: 'Red with Gold',
-      price: '₹12,000',
-      stock: 'Limited Stock',
-      description: 'Exquisite bridal saree with intricate traditional work',
-      images: ['/sample-images/ProductSample.jpeg'],
-      tags: ['bridal', 'silk', 'luxury'],
-      shipping: 'Free shipping across India',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }
-  ]
-
-  return celebrityProducts
+  try {
+    const response = await fetch(`/api/supabase/products?category=celebrity-inspired&limit=50`, {
+      cache: 'no-store'
+    })
+    if (!response.ok) return []
+    const data = await response.json()
+    return data.success ? data.products : []
+  } catch (error) {
+    console.error('Error fetching celebrity products:', error)
+    return []
+  }
 }
 
 function sortProducts(products: Product[], sortOption: string): Product[] {
   const sorted = [...products]
-  
   switch (sortOption) {
     case 'price-low':
-      return sorted.sort((a, b) => parseInt(a.price.replace(/[₹,]/g, '')) - parseInt(b.price.replace(/[₹,]/g, '')))
+      return sorted.sort((a, b) => safePrice(a.price) - safePrice(b.price))
     case 'price-high':
-      return sorted.sort((a, b) => parseInt(b.price.replace(/[₹,]/g, '')) - parseInt(a.price.replace(/[₹,]/g, '')))
+      return sorted.sort((a, b) => safePrice(b.price) - safePrice(a.price))
     case 'name':
       return sorted.sort((a, b) => a.name.localeCompare(b.name))
     case 'stock':
       return sorted.sort((a, b) => {
-        if (a.stock === 'In Stock' && b.stock !== 'In Stock') return -1
-        if (a.stock !== 'In Stock' && b.stock === 'In Stock') return 1
-        return 0
+        const aStock = Number(a.stock) || 0
+        const bStock = Number(b.stock) || 0
+        return bStock - aStock
       })
     default:
       return sorted
@@ -82,84 +51,81 @@ function filterProducts(products: Product[], filters: {
   stock: string
 }): Product[] {
   return products.filter(product => {
-    // Price filter
-    const price = parseInt(product.price.replace(/[₹,]/g, ''))
+    const price = safePrice(product.price)
     if (filters.priceRange !== 'all') {
       switch (filters.priceRange) {
-        case '0-1000':
-          if (price > 1000) return false
-          break
-        case '1000-3000':
-          if (price < 1000 || price > 3000) return false
-          break
-        case '3000-6000':
-          if (price < 3000 || price > 6000) return false
-          break
-        case '6000+':
-          if (price < 6000) return false
-          break
+        case '0-1000': if (price > 1000) return false; break
+        case '1000-3000': if (price < 1000 || price > 3000) return false; break
+        case '3000-6000': if (price < 3000 || price > 6000) return false; break
+        case '6000+': if (price < 6000) return false; break
       }
     }
-
-    // Fabric filter
     if (filters.fabric !== 'all') {
-      const fabricMatch = product.fabric.toLowerCase().includes(filters.fabric.toLowerCase())
-      if (!fabricMatch) return false
+      if (!product.fabric?.toLowerCase().includes(filters.fabric.toLowerCase())) return false
     }
-
-    // Stock filter
     if (filters.stock !== 'all') {
-      if (filters.stock === 'in-stock' && product.stock !== 'In Stock') return false
-      if (filters.stock === 'limited' && product.stock !== 'Limited Stock') return false
+      const stockNum = Number(product.stock) || 0
+      if (filters.stock === 'in-stock' && stockNum <= 0) return false
+      if (filters.stock === 'limited' && (stockNum <= 0 || stockNum > 5)) return false
     }
-
     return true
   })
 }
 
 export default function CelebrityInspiredPage() {
+  const { addToCart } = useCart()
   const [products, setProducts] = useState<Product[]>([])
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
+  const [loading, setLoading] = useState(true)
+  const [addedId, setAddedId] = useState<string | null>(null)
 
   useEffect(() => {
-    const initializeProducts = async () => {
-      const initialProducts = await getCelebrityProducts()
-      setProducts(initialProducts)
-      setFilteredProducts(initialProducts)
+    const init = async () => {
+      setLoading(true)
+      const data = await getCelebrityProducts()
+      setProducts(data)
+      setFilteredProducts(data)
+      setLoading(false)
     }
-    initializeProducts()
+    init()
   }, [])
 
-  // Handle sort and filter changes
   const handleSortChange = (sortOption: string) => {
-    const sorted = sortProducts(filteredProducts, sortOption)
-    setFilteredProducts(sorted)
+    setFilteredProducts(sortProducts(filteredProducts, sortOption))
   }
 
-  const handleFilterChange = (filters: {
-    priceRange: string
-    fabric: string
-    stock: string
-  }) => {
-    const filtered = filterProducts(products, filters)
-    setFilteredProducts(filtered)
+  const handleFilterChange = (filters: { priceRange: string; fabric: string; stock: string }) => {
+    setFilteredProducts(filterProducts(products, filters))
+  }
+
+  const handleAddToCart = (product: Product) => {
+    addToCart({
+      _id: product._id!,
+      name: product.name,
+      price: product.price,
+      image: product.images?.[0] || '/sample-images/ProductSample.jpeg',
+      fabric: product.fabric,
+      color: product.color
+    })
+    setAddedId(product._id!)
+    setTimeout(() => setAddedId(null), 1500)
   }
 
   return (
-    <div className="bg-gradient-to-b from-white to-amber-50">
+    <div className="bg-gradient-to-b from-white to-amber-50 min-h-screen">
       {/* Header */}
       <div className="bg-gradient-to-r from-rose-700 to-rose-600 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
           <div className="text-center">
-            <div className="flex items-center justify-center mb-4">
-              <div className="h-px w-16 bg-white/50"></div>
-              <span className="mx-4 text-white text-2xl">⭐</span>
-              <div className="h-px w-16 bg-white/50"></div>
+            <div className="flex items-center justify-center mb-3">
+              <div className="h-px w-10 sm:w-16 bg-white/50"></div>
+              <span className="mx-3 sm:mx-4 text-white text-xl sm:text-2xl">⭐</span>
+              <div className="h-px w-10 sm:w-16 bg-white/50"></div>
             </div>
-            <h1 className="text-4xl font-serif text-white sm:text-5xl mb-4">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-white mb-3">
               Celebrity Inspired
             </h1>
-            <p className="mt-3 max-w-2xl mx-auto text-lg text-rose-50">
+            <p className="mt-2 max-w-2xl mx-auto text-sm sm:text-lg text-rose-50">
               Get the red carpet look with our celebrity-inspired collection, 
               featuring trending designs and premium fabrics.
             </p>
@@ -168,79 +134,84 @@ export default function CelebrityInspiredPage() {
       </div>
 
       {/* Filters */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <ProductFilters onSortChange={handleSortChange} onFilterChange={handleFilterChange} />
       </div>
 
       {/* Products Grid */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredProducts.map((product: Product) => (
-            <div key={product._id} className="group">
-              <div className="relative bg-white rounded-lg shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden">
-                {/* Product Image */}
-                <div className="aspect-w-4 aspect-h-5 bg-gray-100 relative overflow-hidden">
-                  <img
-                    src={product.images?.[0] || '/sample-images/ProductSample.jpeg'}
-                    alt={product.name}
-                    className="w-full h-full object-center object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+        {loading ? (
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="bg-white rounded-lg shadow animate-pulse overflow-hidden">
+                <div className="bg-gray-200 h-48 sm:h-64"></div>
+                <div className="p-3 sm:p-4 space-y-3">
+                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                  <div className="h-5 bg-gray-200 rounded w-1/2"></div>
+                  <div className="h-8 bg-gray-200 rounded"></div>
                 </div>
-
-                {/* Product Info */}
-                <div className="p-6">
-                  <h3 className="text-xl font-serif text-gray-900 mb-2 line-clamp-2">
-                    {product.name}
-                  </h3>
-                  <div className="flex items-center justify-between mb-4">
-                    <p className="text-2xl font-serif text-primary-700">{product.price}</p>
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
-                      ✓ {product.stock}
-                    </span>
-                  </div>
-
-                  {/* Product Details */}
-                  <div className="space-y-2 mb-4">
-                    <div className="flex items-center text-sm text-gray-600">
-                      <span className="font-medium mr-2">Fabric:</span>
-                      <span>{product.fabric}</span>
+              </div>
+            ))}
+          </div>
+        ) : filteredProducts.length === 0 ? (
+          <div className="text-center py-16">
+            <div className="text-6xl mb-4">⭐</div>
+            <h3 className="text-xl sm:text-2xl font-serif text-gray-900 mb-2">No products found</h3>
+            <p className="text-gray-600 text-sm sm:text-base">Try adjusting your filters or check back soon for new celebrity-inspired arrivals.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+            {filteredProducts.map((product: Product) => (
+              <div key={product._id} className="group">
+                <div className="relative bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden">
+                  <Link href={`/products/${product._id}`}>
+                    <div className="relative bg-gray-100 overflow-hidden" style={{ paddingBottom: '120%' }}>
+                      <img
+                        src={product.images?.[0] || '/sample-images/ProductSample.jpeg'}
+                        alt={product.name}
+                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
                     </div>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <span className="font-medium mr-2">Color:</span>
-                      <span>{product.color}</span>
-                    </div>
-                  </div>
+                  </Link>
 
-                  {/* Action Buttons */}
-                  <div className="flex gap-3">
-                    <Link
-                      href={`/products/${product._id}`}
-                      className="flex-1 bg-primary-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-primary-700 transition-colors text-center"
-                    >
-                      View Details
+                  <div className="p-3 sm:p-4">
+                    <Link href={`/products/${product._id}`}>
+                      <h3 className="text-sm sm:text-base font-medium text-gray-900 mb-1 line-clamp-2 hover:text-primary-700 transition-colors">
+                        {product.name}
+                      </h3>
                     </Link>
-                    <a
-                      href={`https://wa.me/917907730095?text=Hi, I'm interested in ${product.name} (${product.price})`}
-                      className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700 transition-colors inline-flex items-center"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <span className="mr-1">📱</span>
-                    </a>
+                    <p className="text-xs text-gray-500 mb-2 line-clamp-1">{product.fabric} • {product.color}</p>
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-lg sm:text-xl font-bold text-primary-700">₹{safePrice(product.price).toLocaleString()}</p>
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${Number(product.stock) > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                        {Number(product.stock) > 0 ? 'In Stock' : 'Out of Stock'}
+                      </span>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleAddToCart(product)}
+                        className={`flex-1 py-2 px-3 rounded-md text-xs sm:text-sm font-medium transition-colors text-center ${
+                          addedId === product._id
+                            ? 'bg-green-600 text-white'
+                            : 'bg-primary-600 text-white hover:bg-primary-700'
+                        }`}
+                      >
+                        {addedId === product._id ? '✓ Added' : '🛒 Add to Cart'}
+                      </button>
+                      <a
+                        href={`https://wa.me/917907730095?text=Hi, I'm interested in ${product.name} (₹${safePrice(product.price).toLocaleString()})`}
+                        className="bg-green-600 text-white px-3 py-2 rounded-md text-xs sm:text-sm font-medium hover:bg-green-700 transition-colors inline-flex items-center"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        📱
+                      </a>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-
-        {/* No Products Message */}
-        {filteredProducts.length === 0 && (
-          <div className="text-center py-16">
-            <div className="text-6xl mb-4">⭐</div>
-            <h3 className="text-2xl font-serif text-gray-900 mb-2">No products found</h3>
-            <p className="text-gray-600">Try adjusting your filters or check back soon for new celebrity-inspired arrivals.</p>
+            ))}
           </div>
         )}
       </div>
