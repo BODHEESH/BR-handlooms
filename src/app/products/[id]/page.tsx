@@ -1,6 +1,12 @@
 import { Product } from '@/types/product'
 import { notFound } from 'next/navigation'
 import ProductDetailClient from '@/components/ProductDetailClient'
+import type { Metadata } from 'next'
+
+function safePrice(price: string | number): number {
+  if (typeof price === 'number') return price
+  return parseFloat(String(price).replace(/[₹,]/g, '')) || 0
+}
 
 async function getProduct(id: string): Promise<Product | null> {
   try {
@@ -17,21 +23,37 @@ async function getProduct(id: string): Promise<Product | null> {
   }
 }
 
+export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+  const product = await getProduct(params.id)
+  if (!product) {
+    return { title: 'Product Not Found - BR Handlooms' }
+  }
+
+  const price = safePrice(product.price)
+  const desc = `Buy ${product.name} - ${product.fabric} handloom in ${product.color}. ₹${price.toLocaleString()}. Authentic Kuthampully handwoven textile from BR Handlooms.`
+
+  return {
+    title: `${product.name} - BR Handlooms | Kuthampully Handloom`,
+    description: desc,
+    openGraph: {
+      title: `${product.name} | BR Handlooms`,
+      description: desc,
+      images: product.images?.[0] ? [{ url: product.images[0], width: 800, height: 1000 }] : [],
+      type: 'website',
+    },
+  }
+}
+
 export default async function ProductDetailPage({
   params,
 }: {
   params: { id: string }
 }) {
-  console.log('Fetching product with ID:', params.id)
   const product = await getProduct(params.id)
-  
-  console.log('Product data received:', JSON.stringify(product, null, 2))
 
   if (!product) {
-    console.log('Product not found, calling notFound()')
     notFound()
   }
 
-  console.log('Rendering ProductDetailClient with product:', product.name)
   return <ProductDetailClient product={product} />
 }

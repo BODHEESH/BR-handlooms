@@ -58,6 +58,8 @@ interface ProductFormData {
   tags: string
   whatsapp_number: string
   images: string[]
+  blouse_price: string
+  blouse_details: string
 }
 
 export default function AddProductPage() {
@@ -103,7 +105,9 @@ export default function AddProductPage() {
     meta_keywords: '',
     tags: '',
     whatsapp_number: '',
-    images: []
+    images: [],
+    blouse_price: '',
+    blouse_details: ''
   })
 
   useEffect(() => {
@@ -112,8 +116,7 @@ export default function AddProductPage() {
 
   const fetchCategories = async () => {
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
-      const response = await fetch(`${baseUrl}/api/admin/categories`)
+      const response = await fetch('/api/admin/categories')
       const data = await response.json()
       console.log('Categories fetched:', data)
       if (data.success) {
@@ -265,11 +268,12 @@ export default function AddProductPage() {
         low_stock_threshold: parseInt(formData.low_stock_threshold),
         weight: formData.weight ? parseFloat(formData.weight) : null,
         tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()).filter(Boolean) : [],
-        meta_keywords: formData.meta_keywords ? formData.meta_keywords.split(',').map(keyword => keyword.trim()).filter(Boolean) : []
+        meta_keywords: formData.meta_keywords ? formData.meta_keywords.split(',').map(keyword => keyword.trim()).filter(Boolean) : [],
+        blouse_price: formData.blouse_price ? parseFloat(formData.blouse_price) : null,
+        blouse_details: formData.blouse_details || null
       }
 
-      const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
-      const response = await fetch(`${baseUrl}/api/admin/products`, {
+      const response = await fetch('/api/admin/products', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -573,6 +577,44 @@ export default function AddProductPage() {
                 />
               </div>
               {errors.cost_price && <p className="mt-1 text-sm text-red-600">{errors.cost_price}</p>}
+            </div>
+          </div>
+
+          {/* Blouse Pricing */}
+          <div className="mt-6 pt-6 border-t border-gray-200">
+            <h3 className="text-sm font-semibold text-gray-900 mb-1">Blouse Piece Pricing (Optional)</h3>
+            <p className="text-xs text-gray-500 mb-4">Add blouse price if available. Leave empty if not applicable.</p>
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Blouse Price (per meter)
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">₹</span>
+                  <input
+                    type="number"
+                    value={formData.blouse_price}
+                    onChange={(e) => handleInputChange('blouse_price', e.target.value)}
+                    step="1"
+                    min="0"
+                    className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
+                    placeholder="e.g., 160"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Blouse Details
+                </label>
+                <input
+                  type="text"
+                  value={formData.blouse_details}
+                  onChange={(e) => handleInputChange('blouse_details', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="e.g., Available separately, 1 meter included"
+                />
+              </div>
             </div>
           </div>
         </div>

@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     
     // Validate required fields
-    const { name, price, description, category_id, fabric, color, size, stock, images, tags, featured, best_seller } = body
+    const { name, price, description, category_id, fabric, color, size, stock, images, tags, featured, best_seller, blouse_price, blouse_details, compare_at_price, weight } = body
     
     if (!name || !price) {
       return NextResponse.json(
@@ -124,6 +124,10 @@ export async function POST(request: NextRequest) {
       active: true,
       published: true,
       sku,
+      compare_at_price: compare_at_price ? parseFloat(compare_at_price) : null,
+      weight: weight ? parseFloat(weight) : null,
+      blouse_price: blouse_price ? parseFloat(blouse_price) : null,
+      blouse_details: blouse_details || null,
       telegram_message_id: null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
