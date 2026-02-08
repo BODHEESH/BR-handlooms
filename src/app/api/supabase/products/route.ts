@@ -12,6 +12,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const category = searchParams.get('category')
     const featured = searchParams.get('featured')
+    const search = searchParams.get('search')
     const limit = parseInt(searchParams.get('limit') || '50')
     const offset = parseInt(searchParams.get('offset') || '0')
 
@@ -20,6 +21,12 @@ export async function GET(request: NextRequest) {
       .select('*')
       .eq('active', true)
       .order('created_at', { ascending: false })
+
+    // Search by name, fabric, color, or tags
+    if (search && search.trim()) {
+      const term = search.trim()
+      query = query.or(`name.ilike.%${term}%,fabric.ilike.%${term}%,color.ilike.%${term}%,description.ilike.%${term}%`)
+    }
 
     // Handle category filtering by slug
     if (category) {

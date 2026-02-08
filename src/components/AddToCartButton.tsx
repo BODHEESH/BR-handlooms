@@ -23,6 +23,7 @@ export default function AddToCartButton({ product, className, showLabel = false 
   const handleClick = () => {
     addToCart({
       _id: product._id,
+      productId: product._id,
       name: product.name,
       price: product.price,
       image: product.image,

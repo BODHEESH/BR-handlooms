@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Product } from '@/types/product'
 import Link from 'next/link'
 import ProductFilters from '@/components/ProductFilters'
+import ProductImage from '@/components/ProductImage'
 import { useCart } from '@/contexts/CartContext'
 
 function safePrice(price: string | number): number {
@@ -166,11 +167,26 @@ export default function CelebrityInspiredPage() {
                 <div className="relative bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden">
                   <Link href={`/products/${product._id}`}>
                     <div className="relative bg-gray-100 overflow-hidden" style={{ paddingBottom: '120%' }}>
-                      <img
+                      <ProductImage
                         src={product.images?.[0] || '/sample-images/ProductSample.jpeg'}
                         alt={product.name}
                         className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        fill
                       />
+                      {/* Badges */}
+                      <div className="absolute top-2 left-2 flex flex-col gap-1">
+                        {product.compare_at_price && safePrice(product.compare_at_price) > safePrice(product.price) && (
+                          <span className="bg-red-500 text-white text-[10px] sm:text-xs font-bold px-1.5 py-0.5 rounded">
+                            {Math.round(((safePrice(product.compare_at_price) - safePrice(product.price)) / safePrice(product.compare_at_price)) * 100)}% OFF
+                          </span>
+                        )}
+                        {product.featured && (
+                          <span className="bg-amber-500 text-white text-[10px] sm:text-xs font-bold px-1.5 py-0.5 rounded">⭐ Bestseller</span>
+                        )}
+                        {(product.new_arrival || (product.created_at && (Date.now() - new Date(product.created_at).getTime()) < 30 * 24 * 60 * 60 * 1000)) && (
+                          <span className="bg-blue-500 text-white text-[10px] sm:text-xs font-bold px-1.5 py-0.5 rounded">🆕 New</span>
+                        )}
+                      </div>
                     </div>
                   </Link>
 
@@ -181,33 +197,23 @@ export default function CelebrityInspiredPage() {
                       </h3>
                     </Link>
                     <p className="text-xs text-gray-500 mb-2 line-clamp-1">{product.fabric} • {product.color}</p>
-                    <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center flex-wrap gap-1 mb-3">
                       <p className="text-lg sm:text-xl font-bold text-primary-700">₹{safePrice(product.price).toLocaleString()}</p>
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${Number(product.stock) > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                        {Number(product.stock) > 0 ? 'In Stock' : 'Out of Stock'}
-                      </span>
+                      {product.compare_at_price && safePrice(product.compare_at_price) > safePrice(product.price) && (
+                        <p className="text-xs sm:text-sm text-gray-400 line-through">₹{safePrice(product.compare_at_price).toLocaleString()}</p>
+                      )}
                     </div>
 
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleAddToCart(product)}
-                        className={`flex-1 py-2 px-3 rounded-md text-xs sm:text-sm font-medium transition-colors text-center ${
-                          addedId === product._id
-                            ? 'bg-green-600 text-white'
-                            : 'bg-primary-600 text-white hover:bg-primary-700'
-                        }`}
-                      >
-                        {addedId === product._id ? '✓ Added' : '🛒 Add to Cart'}
-                      </button>
-                      <a
-                        href={`https://wa.me/917907730095?text=Hi, I'm interested in ${product.name} (₹${safePrice(product.price).toLocaleString()})`}
-                        className="bg-green-600 text-white px-3 py-2 rounded-md text-xs sm:text-sm font-medium hover:bg-green-700 transition-colors inline-flex items-center"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        📱
-                      </a>
-                    </div>
+                    <button
+                      onClick={() => handleAddToCart(product)}
+                      className={`w-full py-2 px-3 rounded-md text-xs sm:text-sm font-medium transition-colors text-center ${
+                        addedId === product._id
+                          ? 'bg-green-600 text-white'
+                          : 'bg-primary-600 text-white hover:bg-primary-700'
+                      }`}
+                    >
+                      {addedId === product._id ? '✓ Added' : '🛒 Add to Cart'}
+                    </button>
                   </div>
                 </div>
               </div>

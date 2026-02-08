@@ -66,6 +66,18 @@ export default async function NewArrivalsPage() {
                           <span className="text-primary-600 text-5xl">🧵</span>
                         </div>
                       )}
+                      {/* Badges */}
+                      <div className="absolute top-2 left-2 flex flex-col gap-1">
+                        {product.compare_at_price && safePrice(product.compare_at_price) > safePrice(product.price) && (
+                          <span className="bg-red-500 text-white text-[10px] sm:text-xs font-bold px-1.5 py-0.5 rounded">
+                            {Math.round(((safePrice(product.compare_at_price) - safePrice(product.price)) / safePrice(product.compare_at_price)) * 100)}% OFF
+                          </span>
+                        )}
+                        {product.featured && (
+                          <span className="bg-amber-500 text-white text-[10px] sm:text-xs font-bold px-1.5 py-0.5 rounded">⭐ Bestseller</span>
+                        )}
+                        <span className="bg-blue-500 text-white text-[10px] sm:text-xs font-bold px-1.5 py-0.5 rounded">🆕 New</span>
+                      </div>
                     </div>
                   </Link>
                   <div className="p-3 sm:p-4">
@@ -75,34 +87,24 @@ export default async function NewArrivalsPage() {
                       </h3>
                     </Link>
                     <p className="text-xs text-gray-500 mb-2 line-clamp-1">{product.fabric} • {product.color}</p>
-                    <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center flex-wrap gap-1 mb-3">
                       <p className="text-lg sm:text-xl font-bold text-primary-700">₹{safePrice(product.price).toLocaleString()}</p>
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${Number(product.stock) > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                        {Number(product.stock) > 0 ? 'In Stock' : 'Out of Stock'}
-                      </span>
+                      {product.compare_at_price && safePrice(product.compare_at_price) > safePrice(product.price) && (
+                        <p className="text-xs sm:text-sm text-gray-400 line-through">₹{safePrice(product.compare_at_price).toLocaleString()}</p>
+                      )}
                     </div>
-                    <div className="flex gap-2">
-                      <AddToCartButton
-                        product={{
-                          _id: product._id!,
-                          name: product.name,
-                          price: String(product.price),
-                          image: product.images?.[0] || '/sample-images/ProductSample.jpeg',
-                          fabric: product.fabric,
-                          color: product.color
-                        }}
-                        className="flex-1 py-2 px-3 rounded-md text-xs sm:text-sm font-medium bg-primary-600 text-white hover:bg-primary-700 transition-colors text-center"
-                        showLabel={true}
-                      />
-                      <a
-                        href={`https://wa.me/917907730095?text=Hi, I'm interested in ${product.name} (₹${safePrice(product.price).toLocaleString()})`}
-                        className="bg-green-600 text-white px-3 py-2 rounded-md text-xs sm:text-sm font-medium hover:bg-green-700 transition-colors inline-flex items-center"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        📱
-                      </a>
-                    </div>
+                    <AddToCartButton
+                      product={{
+                        _id: product._id!,
+                        name: product.name,
+                        price: String(product.price),
+                        image: product.images?.[0] || '/sample-images/ProductSample.jpeg',
+                        fabric: product.fabric,
+                        color: product.color
+                      }}
+                      className="w-full py-2 px-3 rounded-md text-xs sm:text-sm font-medium bg-primary-600 text-white hover:bg-primary-700 transition-colors text-center"
+                      showLabel={true}
+                    />
                   </div>
                 </div>
               </div>

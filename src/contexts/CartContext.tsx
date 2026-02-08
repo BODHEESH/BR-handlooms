@@ -6,12 +6,17 @@ const CART_STORAGE_KEY = 'br_handlooms_cart'
 
 export interface CartItem {
   _id: string
+  productId?: string
   name: string
   price: string | number
   image: string
   quantity: number
   fabric: string
   color: string
+  blouse_price?: number
+  blouse_meters?: number
+  blouse_details?: string
+  weight?: number
 }
 
 interface CartState {
@@ -36,7 +41,8 @@ const initialState: CartState = {
 function calculateTotal(items: CartItem[]): number {
   return items.reduce((sum, item) => {
     const price = parseFloat(String(item.price).replace(/[₹,]/g, '')) || 0
-    return sum + price * item.quantity
+    const blouseCost = (item.blouse_price && item.blouse_meters) ? item.blouse_price * item.blouse_meters : 0
+    return sum + (price * item.quantity) + blouseCost
   }, 0)
 }
 
@@ -91,6 +97,8 @@ interface CartContextType {
   addToCart: (product: Omit<CartItem, 'quantity'>) => Promise<void>
   removeFromCart: (id: string) => Promise<void>
   updateQuantity: (id: string, quantity: number) => Promise<void>
+  updateBlouseQuantity: (id: string, blouseMeters: number, blousePrice?: number) => Promise<void>
+  removeBlouse: (id: string) => Promise<void>
   clearCart: () => Promise<void>
   refreshCart: () => Promise<void>
 }
@@ -128,6 +136,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
     if (existingIndex >= 0) {
       items[existingIndex].quantity += 1
+      // Update blouse info if provided (user may have added/changed blouse on product page)
+      if (product.blouse_price && product.blouse_price > 0) {
+        items[existingIndex].blouse_price = product.blouse_price
+        items[existingIndex].blouse_meters = product.blouse_meters || 1
+        items[existingIndex].blouse_details = product.blouse_details || 'Blouse piece'
+      }
+      // Update weight if provided
+      if (product.weight && product.weight > 0) {
+        items[existingIndex].weight = product.weight
+      }
+      // Update productId if provided
+      if (product.productId) {
+        items[existingIndex].productId = product.productId
+      }
     } else {
       items.push({ ...product, quantity: 1 })
     }
@@ -155,6 +177,43 @@ export function CartProvider({ children }: { children: ReactNode }) {
     syncCart(items)
   }
 
+  const updateBlouseQuantity = async (id: string, blouseMeters: number, blousePrice?: number) => {
+    const items = loadFromLocalStorage()
+    const index = items.findIndex(item => item._id === id)
+
+    if (index >= 0) {
+      if (blouseMeters <= 0) {
+        // Remove blouse if meters is 0
+        delete items[index].blouse_price
+        delete items[index].blouse_meters
+        delete items[index].blouse_details
+      } else {
+        // Add or update blouse
+        if (!items[index].blouse_price) {
+          // If no blouse price exists, use the provided price or default
+          items[index].blouse_price = blousePrice || 160
+          items[index].blouse_details = 'Blouse piece available separately'
+        }
+        items[index].blouse_meters = blouseMeters
+      }
+    }
+
+    syncCart(items)
+  }
+
+  const removeBlouse = async (id: string) => {
+    const items = loadFromLocalStorage()
+    const index = items.findIndex(item => item._id === id)
+
+    if (index >= 0) {
+      delete items[index].blouse_price
+      delete items[index].blouse_meters
+      delete items[index].blouse_details
+    }
+
+    syncCart(items)
+  }
+
   const clearCart = async () => {
     saveToLocalStorage([])
     dispatch({ type: 'CLEAR_CART' })
@@ -166,6 +225,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       addToCart,
       removeFromCart,
       updateQuantity,
+      updateBlouseQuantity,
+      removeBlouse,
       clearCart,
       refreshCart
     }}>

@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useCart } from '@/contexts/CartContext'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { estimateShippingCharge, isKeralaPincode, getDistrictForPincode } from '@/utils/shipping'
 
 interface CheckoutFormData {
   firstName: string
@@ -38,6 +39,25 @@ export default function CheckoutPage() {
     paymentMethod: 'whatsapp'
   })
 
+  // Calculate shipping based on pincode and cart weight
+  const totalWeightGrams = cart.items.reduce((sum, item) => {
+    const w = item.weight ? (typeof item.weight === 'number' ? item.weight : parseFloat(String(item.weight)) || 0) : 0
+    return sum + (w * 1000 * item.quantity)
+  }, 0)
+
+  const validPincode = formData.pincode.length === 6 && /^\d{6}$/.test(formData.pincode)
+  const shipping = estimateShippingCharge(totalWeightGrams, validPincode ? formData.pincode : undefined, 'parcel')
+  const shippingCost = Math.ceil((shipping.total * 1.3) / 10) * 10
+  const isKerala = validPincode ? isKeralaPincode(formData.pincode) : null
+  const district = validPincode && isKerala ? getDistrictForPincode(formData.pincode) : null
+
+  // Auto-fill state when Kerala pincode detected
+  useEffect(() => {
+    if (validPincode && isKerala && !formData.state) {
+      setFormData(prev => ({ ...prev, state: 'Kerala' }))
+    }
+  }, [validPincode, isKerala, formData.state])
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({
@@ -70,7 +90,8 @@ export default function CheckoutPage() {
           color: item.color
         })),
         subtotal: cart.total,
-        total_amount: cart.total
+        shipping: shippingCost,
+        total_amount: cart.total + shippingCost
       }
 
       const response = await fetch('/api/orders', {
@@ -92,7 +113,7 @@ export default function CheckoutPage() {
         `${index + 1}. ${item.name}\n   Fabric: ${item.fabric}\n   Color: ${item.color}\n   Price: ₹${safeParsePrice(item.price)} x ${item.quantity} = ₹${(safeParsePrice(item.price) * item.quantity).toLocaleString()}`
       ).join('\n\n')
 
-      const message = `🛍️ *New Order - BR Handlooms* 🛍️\n*Order #${orderNumber}*\n\n👤 *Customer Details:*\n${formData.firstName} ${formData.lastName}\n📧 ${formData.email}\n📱 ${formData.phone}\n\n🏠 *Shipping Address:*\n${formData.address}\n${formData.city}, ${formData.state} - ${formData.pincode}\n\n📦 *Order Details:*\n${orderDetails}\n\n💰 *Total Amount: ₹${cart.total.toLocaleString()}*\n\n🚚 *Shipping: Free*\n💳 *Payment: ${formData.paymentMethod === 'cod' ? 'Cash on Delivery' : 'WhatsApp Order Confirmation'}*\n\nPlease confirm the order and share payment details. Thank you! 🙏`
+      const message = `🛍️ *New Order - BR Handlooms* 🛍️\n*Order #${orderNumber}*\n\n👤 *Customer Details:*\n${formData.firstName} ${formData.lastName}\n📧 ${formData.email}\n📱 ${formData.phone}\n\n🏠 *Shipping Address:*\n${formData.address}\n${formData.city}, ${formData.state} - ${formData.pincode}${district ? ` (${district})` : ''}\n\n📦 *Order Details:*\n${orderDetails}\n\n💰 *Subtotal: ₹${cart.total.toLocaleString()}*\n🚚 *Shipping: ₹${shippingCost.toLocaleString()}* (India Post Parcel)\n💰 *Total: ₹${(cart.total + shippingCost).toLocaleString()}*\n\n💳 *Payment: ${formData.paymentMethod === 'cod' ? 'Cash on Delivery' : 'WhatsApp Order Confirmation'}*\n\nPlease confirm the order and share payment details. Thank you! 🙏`
 
       // 3. Redirect to WhatsApp
       const whatsappUrl = `https://wa.me/917907730095?text=${encodeURIComponent(message)}`
@@ -338,17 +359,21 @@ export default function CheckoutPage() {
                   <span className="font-medium">₹{cart.total.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Shipping</span>
-                  <span className="font-medium text-green-600">Free</span>
+                  <span className="text-gray-600">Shipping (India Post)</span>
+                  <span className="font-medium">₹{shippingCost.toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Tax</span>
-                  <span className="font-medium">₹0</span>
-                </div>
+                {validPincode && (
+                  <p className="text-xs text-gray-500">
+                    {isKerala
+                      ? `📍 Delivering to ${district || 'Kerala'} — Local rates`
+                      : '📍 Inter-state delivery rates applied'
+                    }
+                  </p>
+                )}
                 <div className="border-t border-gray-200 pt-4">
                   <div className="flex justify-between">
                     <span className="text-lg font-semibold text-gray-900">Total</span>
-                    <span className="text-lg font-bold text-primary-700">₹{cart.total.toLocaleString()}</span>
+                    <span className="text-lg font-bold text-primary-700">₹{(cart.total + shippingCost).toLocaleString()}</span>
                   </div>
                 </div>
               </div>
