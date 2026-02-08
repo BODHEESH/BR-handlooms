@@ -49,6 +49,9 @@ export default function AboutPage() {
             <p>
               By connecting you directly with the artisans, we eliminate middlemen, ensuring fair prices for both the weavers and our customers. Every purchase supports the livelihoods of traditional weaving families and helps keep this centuries-old craft alive.
             </p>
+            <p className="text-sm text-gray-500 italic">
+              We also offer a select range of quality powerloom products for customers looking for budget-friendly options. Each product on our store clearly mentions its weave type.
+            </p>
           </div>
         </section>
 
@@ -58,8 +61,8 @@ export default function AboutPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             <div className="bg-amber-50 rounded-xl p-5 sm:p-6 border border-amber-100">
               <span className="text-2xl mb-3 block">🧵</span>
-              <h3 className="font-semibold text-gray-900 mb-2">100% Handwoven</h3>
-              <p className="text-sm text-gray-600">Every product is handwoven on traditional pit looms by skilled artisans. No power looms, no shortcuts.</p>
+              <h3 className="font-semibold text-gray-900 mb-2">Authentic Handwoven</h3>
+              <p className="text-sm text-gray-600">Our handloom products are woven on traditional pit looms by skilled artisans using time-honoured techniques.</p>
             </div>
             <div className="bg-green-50 rounded-xl p-5 sm:p-6 border border-green-100">
               <span className="text-2xl mb-3 block">🏷️</span>
@@ -86,7 +89,7 @@ export default function AboutPage() {
             <ul className="space-y-3 text-gray-700">
               <li className="flex items-start gap-3">
                 <span className="text-primary-600 mt-0.5">✓</span>
-                <span>Every product is <strong>100% authentic</strong> Kuthampully handloom</span>
+                <span>Every handloom product is <strong>100% authentic</strong> Kuthampully handwoven</span>
               </li>
               <li className="flex items-start gap-3">
                 <span className="text-primary-600 mt-0.5">✓</span>
