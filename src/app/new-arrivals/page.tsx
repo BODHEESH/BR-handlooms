@@ -1,6 +1,12 @@
 import { Product } from '@/types/product'
 import Link from 'next/link'
 import AddToCartButton from '@/components/AddToCartButton'
+import { createClient } from '@supabase/supabase-js'
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
 
 function safePrice(price: string | number): number {
   if (typeof price === 'number') return price
@@ -9,13 +15,16 @@ function safePrice(price: string | number): number {
 
 async function getNewArrivals(): Promise<Product[]> {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
-    const response = await fetch(`${baseUrl}/api/supabase/products?featured=true&limit=20`, {
-      cache: 'no-store'
-    })
-    if (!response.ok) return []
-    const data = await response.json()
-    return data.success ? data.products : []
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .eq('active', true)
+      .eq('featured', true)
+      .order('created_at', { ascending: false })
+      .limit(20)
+
+    if (error || !data) return []
+    return data.map((p: any) => ({ ...p, _id: p.id })) as Product[]
   } catch (error) {
     console.error('Error fetching new arrivals:', error)
     return []

@@ -2,6 +2,12 @@ import { Product } from '@/types/product'
 import { notFound } from 'next/navigation'
 import ProductDetailClient from '@/components/ProductDetailClient'
 import type { Metadata } from 'next'
+import { createClient } from '@supabase/supabase-js'
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
 
 function safePrice(price: string | number): number {
   if (typeof price === 'number') return price
@@ -10,13 +16,19 @@ function safePrice(price: string | number): number {
 
 async function getProduct(id: string): Promise<Product | null> {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/supabase/products/${id}`)
-    if (!response.ok) {
-      console.error('Failed to fetch product:', response.statusText)
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .eq('id', id)
+      .eq('active', true)
+      .single()
+
+    if (error || !data) {
+      console.error('Failed to fetch product:', error?.message)
       return null
     }
-    const data = await response.json()
-    return data.product || null
+
+    return { ...data, _id: data.id } as Product
   } catch (error) {
     console.error('Error fetching product:', error)
     return null
