@@ -71,7 +71,7 @@ export default function NewsletterPopup() {
         {/* Header gradient */}
         <div className="bg-gradient-to-r from-primary-600 to-primary-700 px-6 pt-8 pb-6 text-center text-white">
           <span className="text-3xl mb-2 block">🧵</span>
-          <h3 className="text-xl font-serif mb-1">Get 10% Off Your First Order</h3>
+          <h3 className="text-xl font-serif mb-1">Get 5% Off Your First Order</h3>
           <p className="text-sm text-green-50 opacity-90">
             Join our community for exclusive deals on authentic Kuthampully handlooms
           </p>
@@ -83,7 +83,18 @@ export default function NewsletterPopup() {
             <div className="text-center py-4">
               <span className="text-4xl mb-3 block">🎉</span>
               <h4 className="text-lg font-semibold text-gray-900 mb-1">Welcome to the family!</h4>
-              <p className="text-sm text-gray-600">Check your WhatsApp for your 10% discount code.</p>
+              <p className="text-sm text-gray-600 mb-3">Send us a message on WhatsApp with the code below to claim your discount:</p>
+              <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-2.5 inline-block">
+                <span className="font-bold text-primary-700 text-lg tracking-wider">FIRST5</span>
+              </div>
+              <a
+                href="https://wa.me/917907730095?text=Hi!%20I%20want%20to%20claim%20my%205%25%20first%20order%20discount.%20Code%3A%20FIRST5"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 w-full py-2.5 bg-green-600 text-white rounded-lg font-medium text-sm hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
+              >
+                💬 Claim on WhatsApp
+              </a>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-3">
@@ -101,7 +112,7 @@ export default function NewsletterPopup() {
                 type="submit"
                 className="w-full py-3 bg-primary-600 text-white rounded-lg font-medium text-sm hover:bg-primary-700 transition-colors"
               >
-                Get My 10% Discount
+                Get My 5% Discount
               </button>
               <p className="text-[11px] text-gray-400 text-center">
                 No spam, ever. Unsubscribe anytime.
